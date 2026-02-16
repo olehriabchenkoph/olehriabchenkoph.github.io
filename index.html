@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Oleh Riabchenko - Infinite Canvas</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <!-- Custom Cursor -->
+    <div id="cursor-dot"></div>
+    <canvas id="cursor-canvas"></canvas>
+
+    <!-- UI Overlay -->
+    <div id="intro-overlay">
+        <button id="intro-btn">Click on me</button>
+        <!-- Secondary Menu Bubbles -->
+        <a href="about.html" id="about-bubble" class="menu-bubble">About Me</a>
+    </div>
+
+    <!-- The Infinite Canvas -->
+    <div id="canvas-container">
+        <div id="canvas">
+            <!-- Images will be injected here by script.js -->
+        </div>
+    </div>
+
+    <!-- Load Image Data -->
+    <script src="image_data.js"></script>
+    <!-- Main Logic -->
+    <script src="script.js"></script>
+
+</body>
+
+</html>

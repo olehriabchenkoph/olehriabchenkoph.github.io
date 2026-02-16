@@ -1,0 +1,219 @@
+/* Global Reset */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    cursor: none !important;
+    /* Force hide default cursor */
+}
+
+body,
+html {
+    width: 100%;
+    height: 100%;
+    background-color: #ffffff;
+    overflow: hidden;
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    user-select: none;
+}
+
+/* --- CUSTOM CURSOR --- */
+#cursor-dot {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 10px;
+    height: 10px;
+    background-color: black;
+    border-radius: 50%;
+    pointer-events: none;
+    /* Click through */
+    z-index: 10000;
+    /* Topmost */
+    transform: translate(-50%, -50%);
+    will-change: left, top;
+}
+
+#cursor-canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 9999;
+}
+
+/* --- UI OVERLAY --- */
+#intro-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 2000;
+    /* Below cursor, above canvas */
+    pointer-events: none;
+    /* Allow clicks to pass through unless on button */
+}
+
+/* Main Button */
+#intro-btn {
+    pointer-events: auto;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    background-color: #000;
+    color: #fff;
+    border: none;
+
+    font-size: 1rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+
+    animation: pulse-black 2s infinite;
+    transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+#intro-btn:hover {
+    transform: translate(-50%, -50%) scale(1.1);
+}
+
+@keyframes pulse-black {
+    0% {
+        box-shadow: 0 0 0 0 rgba(0, 0, 0, 0.7);
+    }
+
+    70% {
+        box-shadow: 0 0 0 20px rgba(0, 0, 0, 0);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(0, 0, 0, 0);
+    }
+}
+
+/* Docked State */
+#intro-btn.docked {
+    width: 20px;
+    height: 20px;
+    font-size: 0;
+    top: auto;
+    bottom: 30px;
+    transform: translate(-50%, 0);
+    animation: none;
+}
+
+/* Menu Open State */
+#intro-btn.menu-open {
+    width: 150px;
+    height: 150px;
+    font-size: 1rem;
+    top: 50%;
+    bottom: auto;
+    transform: translate(-50%, -50%);
+    animation: pulse-black 2s infinite;
+}
+
+/* Secondary Menu */
+.menu-bubble {
+    position: absolute;
+    top: 65%;
+    left: 50%;
+    width: 100px;
+    height: 100px;
+
+    background-color: #fff;
+    color: #000;
+    border: 2px solid #000;
+    border-radius: 50%;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    text-decoration: none;
+
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0);
+    transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    pointer-events: none;
+    z-index: 1999;
+}
+
+.menu-bubble.visible {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+    pointer-events: auto;
+}
+
+/* --- CANVAS & PHOTOS --- */
+#canvas-container {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+}
+
+#canvas {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    transform-origin: 0 0;
+    will-change: transform;
+    opacity: 0;
+    transition: opacity 1.5s ease;
+}
+
+#canvas.visible {
+    opacity: 1;
+}
+
+.photo-item {
+    position: absolute;
+    top: 0;
+    left: 0;
+    user-select: none;
+    width: 350px;
+    /* Reduced to ~ half of physical size for sharp retina look and screen fit */
+    transition: opacity 0.8s ease;
+    will-change: transform;
+    /* Hint for browser optimization */
+}
+
+/* New Staggered Loading Classes */
+.hidden-photo {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.visible-photo {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.photo-item img {
+    display: block;
+    width: 100%;
+    height: auto;
+    pointer-events: none;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    /* Slightly lighter shadow */
+}
+
+/* Removed .resize-handle */
