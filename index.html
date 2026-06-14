@@ -560,54 +560,54 @@
         const x = pos.x;
         const z = pos.z;
         
-        let minX = -17.5;
-        let maxX = 67.5;
-        let minZ = -4.5;
-        let maxZ = 4.5;
-        
-        // Foyer & Transition zones
-        if (x >= -6.5 && x <= 6.5) {
-          // In the central foyer corridor
-          minZ = -1.8;
-          maxZ = 1.8;
-        } else if (x < -6.5) {
-          // In Bloom Hall (X is -18 to -6)
-          minX = -17.5;
-          maxX = -6.5;
-          minZ = -5.5;
+        let minX = -9.5;
+        let maxX = 9.5;
+        let minZ = -517.5;
+        let maxZ = 5.5;
+
+        if (z >= -0.5) {
+          // In Foyer (Z from -0.5 to 5.5)
+          minX = -9.5;
+          maxX = 9.5;
+          minZ = -0.5; // can't go north unless through doorways
           maxZ = 5.5;
-          
-          // Allow exit into foyer if near Z = 0
-          if (z >= -1.8 && z <= 1.8) {
-            maxX = 6.5; // let it cross
+
+          // Allow passing through doorways
+          if (x >= -8 && x <= -2) {
+            minZ = -139.5; // Left doorway into Bloom corridor
+          } else if (x >= 2 && x <= 8) {
+            minZ = -517.5; // Right doorway into Dopamine corridor
           }
-        } else if (x > 6.5) {
-          // In Dopamine Hall (X is 6 to 68)
-          minX = 6.5;
-          maxX = 67.5;
-          minZ = -4.5;
-          maxZ = 4.5;
-          
-          // Allow exit into foyer if near Z = 0
-          if (z >= -1.8 && z <= 1.8) {
-            minX = -6.5; // let it cross
+        } else {
+          // Z < -0.5 (Inside corridors)
+          if (x < 0) {
+            // Bloom Hall (Left corridor)
+            minX = -9.5;
+            maxX = -0.5;
+            minZ = -139.5;
+            maxZ = 0.5; // allow going back to foyer
+          } else {
+            // Dopamine Hall (Right corridor)
+            minX = 0.5;
+            maxX = 9.5;
+            minZ = -517.5;
+            maxZ = 0.5; // allow going back to foyer
           }
         }
-        
-        // Clamp position to boundary outer bounds
+
+        // Apply clamping
         if (pos.x < minX) pos.x = minX;
         if (pos.x > maxX) pos.x = maxX;
         if (pos.z < minZ) pos.z = minZ;
         if (pos.z > maxZ) pos.z = maxZ;
 
-        // Prevent walking through Room 2's internal partition walls (X = 20)
-        if (pos.x >= 19.5 && pos.x <= 20.5) {
-          if ((pos.z >= -3.7 && pos.z <= -1.3) || (pos.z >= 1.3 && pos.z <= 3.7)) {
-            // Push player back horizontally
+        // Prevent walking through Room 2's center divider at X = 5, Z between -145.5 and -54.5
+        if (pos.z >= -145.5 && pos.z <= -54.5) {
+          if (pos.x >= 4.5 && pos.x <= 5.5) {
             pos.x = this.lastX;
           }
         }
-        
+
         this.lastX = pos.x;
         this.lastZ = pos.z;
       }
@@ -715,7 +715,7 @@
   <a-scene loading-screen="dotsColor: #5c5c93; backgroundColor: #ffffff" renderer="antialias: true; colorManagement: true;">
     
     <!-- Camera Rig -->
-    <a-entity id="camera-rig" position="0 0 0" fps-wasd-controls="speed: 0.07; camera: #camera" swipe-movement-controls="speed: 0.8" teleport-handler="floorId: #floor; indicatorId: #teleport-indicator" room-boundary>
+    <a-entity id="camera-rig" position="0 0 4" fps-wasd-controls="speed: 0.07; camera: #camera" swipe-movement-controls="speed: 0.8" teleport-handler="floorId: #floor; indicatorId: #teleport-indicator" room-boundary>
       
       <!-- Camera Entity -->
       <a-entity id="camera" camera="near: 0.1; far: 100" position="0 1.6 0" look-controls="pointerLockEnabled: false; touchEnabled: false;">
@@ -729,57 +729,58 @@
     <a-entity id="teleport-indicator" visible="false" position="0 0.02 0">
       <a-ring rotation="-90 0 0" radius-inner="0.25" radius-outer="0.3" material="color: #5c5c93; shader: flat; transparent: true; opacity: 0.8"></a-ring>
       <a-ring rotation="-90 0 0" radius-inner="0.05" radius-outer="0.1" material="color: #5c5c93; shader: flat; transparent: true; opacity: 0.9"></a-ring>
-    </a-entity>
+    </a-ent    <!-- Floor (Solid Pure White, sized to fit the corridors and foyer) -->
+    <a-plane id="floor" class="teleportable" rotation="-90 0 0" position="0 0 -256" width="30" height="540" material="color: #ffffff; roughness: 0.95; metalness: 0.05" cursor-feedback></a-plane>
 
-    <!-- Floor (Solid Pure White) -->
-    <a-plane id="floor" class="teleportable" rotation="-90 0 0" width="150" height="150" material="color: #ffffff; roughness: 0.95; metalness: 0.05" cursor-feedback></a-plane>
-
-    <!-- Ceiling (Clean white) -->
-    <a-plane rotation="90 0 0" position="0 5 0" width="150" height="150" material="color: #ffffff; roughness: 1; metalness: 0"></a-plane>
+    <!-- Ceiling (Clean white, sized to fit the corridors and foyer) -->
+    <a-plane rotation="90 0 0" position="0 5 -256" width="30" height="540" material="color: #ffffff; roughness: 1; metalness: 0"></a-plane>
 
     <!-- ----------------------------------------------------
          EXHIBITION WALLS (Solid Pure White)
          ---------------------------------------------------- -->
     
-    <!-- Foyer Entrance Hall (X: -6 to 6, Z: -2 to 2) -->
-    <a-box position="0 2.5 -2.05" width="12.2" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
-    <a-box position="0 2.5 2.05" width="12.2" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
+    <!-- Foyer Entrance Hall (X: -10 to 10, Z: 0 to 6) -->
+    <a-box id="foyer-wall-south" position="0 2.5 6.05" width="20" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
+    <a-box id="foyer-wall-west" position="-10.05 2.5 3" rotation="0 90 0" width="6" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
+    <a-box id="foyer-wall-east" position="10.05 2.5 3" rotation="0 90 0" width="6" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
+    <!-- Foyer North Wall with two doorways -->
+    <a-box id="foyer-wall-north-left" position="-9 2.5 -0.05" width="2" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
+    <a-box id="foyer-wall-north-center" position="0 2.5 -0.05" width="4" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
+    <a-box id="foyer-wall-north-right" position="9 2.5 -0.05" width="2" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
 
-    <!-- Hall 1: Bloom / Квітнення (X: -18 to -6, Z: -6 to 6) -->
-    <a-box id="bloom-wall-north" position="-12 2.5 -6" width="12" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
-    <a-box id="bloom-wall-south" position="-12 2.5 6" width="12" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
-    <a-box id="bloom-wall-west" position="-18 2.5 0" rotation="0 90 0" width="12" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
-    <a-box id="bloom-wall-east-north" position="-6 2.5 -4" rotation="0 90 0" width="4" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
-    <a-box id="bloom-wall-east-south" position="-6 2.5 4" rotation="0 90 0" width="4" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
+    <!-- Hall 1: Bloom / Блум (X: -10 to 0, Z: 0 to -140) -->
+    <a-box id="bloom-wall-west" position="-10.05 2.5 -70" rotation="0 90 0" width="140" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
+    <a-box id="bloom-wall-east" position="-0.05 2.5 -70" rotation="0 90 0" width="140" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
+    <a-box id="bloom-wall-north" position="-5 2.5 -140.05" width="10" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
 
-    <!-- Hall 2: Dopamine / Дофамін (X: 6 to 68, Z: -5 to 5) -->
-    <a-box id="dopamine-wall-north" position="37 2.5 -5" width="62" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
-    <a-box id="dopamine-wall-south" position="37 2.5 5" width="62" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
-    <a-box id="dopamine-wall-east" position="68 2.5 0" rotation="0 90 0" width="10" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
-    <a-box id="dopamine-wall-west-north" position="6 2.5 -3.5" rotation="0 90 0" width="3" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
-    <a-box id="dopamine-wall-west-south" position="6 2.5 3.5" rotation="0 90 0" width="3" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
+    <!-- Hall 2: Dopamine / Дофамін (X: 0 to 10, Z: 0 to -518) -->
+    <a-box id="dopamine-wall-west" position="0.05 2.5 -259" rotation="0 90 0" width="518" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
+    <a-box id="dopamine-wall-east" position="10.05 2.5 -259" rotation="0 90 0" width="518" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
+    <a-box id="dopamine-wall-north" position="5 2.5 -518.05" width="10" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
 
     <!-- Dopamine Internal Room Partitions -->
-    <a-box position="14 2.5 -3.5" rotation="0 90 0" width="3" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
-    <a-box position="14 2.5 3.5" rotation="0 90 0" width="3" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
-    
-    <a-box position="26 2.5 -3.5" rotation="0 90 0" width="3" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
-    <a-box position="26 2.5 3.5" rotation="0 90 0" width="3" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
+    <!-- Room 1 & 2 Partition (Z = -52) -->
+    <a-box position="1.75 2.5 -52" width="3.5" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
+    <a-box position="8.25 2.5 -52" width="3.5" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
 
-    <a-box position="35 2.5 -3.5" rotation="0 90 0" width="3" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
-    <a-box position="35 2.5 3.5" rotation="0 90 0" width="3" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
+    <!-- Room 2 & 3 Partition (Z = -150) -->
+    <a-box position="1.75 2.5 -150" width="3.5" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
+    <a-box position="8.25 2.5 -150" width="3.5" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
 
-    <a-box position="44 2.5 -3.5" rotation="0 90 0" width="3" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
-    <a-box position="44 2.5 3.5" rotation="0 90 0" width="3" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
+    <!-- Room 3 & 4 Partition (Z = -248) -->
+    <a-box position="1.75 2.5 -248" width="3.5" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
+    <a-box position="8.25 2.5 -248" width="3.5" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
 
-    <a-box position="53 2.5 -3.5" rotation="0 90 0" width="3" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
-    <a-box position="53 2.5 3.5" rotation="0 90 0" width="3" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
+    <!-- Room 4 & 5 Partition (Z = -346) -->
+    <a-box position="1.75 2.5 -346" width="3.5" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
+    <a-box position="8.25 2.5 -346" width="3.5" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
 
+    <!-- Room 5 & 6 Partition (Z = -428) -->
+    <a-box position="1.75 2.5 -428" width="3.5" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
+    <a-box position="8.25 2.5 -428" width="3.5" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
 
-
-    <!-- Dopamine Room 2 Center Divider Walls (To hang more photos) -->
-    <a-box position="20 2.5 -2.5" rotation="0 90 0" width="3" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
-    <a-box position="20 2.5 2.5" rotation="0 90 0" width="3" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
+    <!-- Dopamine Room 2 Center Divider Wall -->
+    <a-box position="5 2.5 -100" rotation="0 90 0" width="90" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>alness: 0.05"></a-box>
 
     <!-- ----------------------------------------------------
          LIGHTING (Bright Even Ambient & Directional Lights)
@@ -790,12 +791,12 @@
 
 
 
-    <!-- 3D Text Labels Floating at Hallways -->
-    <a-entity position="-3.5 3 0" rotation="0 90 0">
-      <a-text value="KVITNENNYA" align="center" width="6" color="#1d1d26" font="roboto" font-weight="bold"></a-text>
+    <!-- 3D Text Labels Floating at Hallways (Facing South towards player starting position) -->
+    <a-entity position="-5 3.8 -0.05" rotation="0 180 0">
+      <a-text value="BLOOM" align="center" width="8" color="#1d1d26" font="roboto" font-weight="bold"></a-text>
     </a-entity>
-    <a-entity position="3.5 3 0" rotation="0 -90 0">
-      <a-text value="DOPAMINE" align="center" width="6" color="#1d1d26" font="roboto" font-weight="bold"></a-text>
+    <a-entity position="5 3.8 -0.05" rotation="0 180 0">
+      <a-text value="DOPAMINE" align="center" width="8" color="#1d1d26" font="roboto" font-weight="bold"></a-text>
     </a-entity>
 
     <!-- Dynamic Art Container -->
@@ -827,130 +828,135 @@
       }
     };
 
-    // Anchors for Bloom Hall (X: -12, Z: 0). Total 16 anchors.
+    // Anchors for Bloom Hall (X: -10 to 0, Z: 0 to -140). Total 16 anchors.
     const bloomAnchors = [
-      // West Wall (x = -17.9)
-      {x: -17.9, y: 2.2, z: -4.5, rot: "0 90 0"},
-      {x: -17.9, y: 2.2, z: -1.5, rot: "0 90 0"},
-      {x: -17.9, y: 2.2, z: 1.5, rot: "0 90 0"},
-      {x: -17.9, y: 2.2, z: 4.5, rot: "0 90 0"},
-      // North Wall (z = -5.9)
-      {x: -15.0, y: 2.2, z: -5.9, rot: "0 0 0"},
-      {x: -13.0, y: 2.2, z: -5.9, rot: "0 0 0"},
-      {x: -11.0, y: 2.2, z: -5.9, rot: "0 0 0"},
-      {x: -9.0,  y: 2.2, z: -5.9, rot: "0 0 0"},
-      // South Wall (z = 5.9)
-      {x: -15.0, y: 2.2, z: 5.9, rot: "0 180 0"},
-      {x: -13.0, y: 2.2, z: 5.9, rot: "0 180 0"},
-      {x: -11.0, y: 2.2, z: 5.9, rot: "0 180 0"},
-      {x: -9.0,  y: 2.2, z: 5.9, rot: "0 180 0"},
-      // East Wall (x = -6.1)
-      {x: -6.1, y: 2.2, z: -4.5, rot: "0 -90 0"},
-      {x: -6.1, y: 2.2, z: -3.0, rot: "0 -90 0"},
-      {x: -6.1, y: 2.2, z: 3.0, rot: "0 -90 0"},
-      {x: -6.1, y: 2.2, z: 4.5, rot: "0 -90 0"}
+      // West Wall (X = -9.9, facing East: rot "0 90 0")
+      {x: -9.9, y: 2.2, z: -15, rot: "0 90 0"},
+      {x: -9.9, y: 2.2, z: -30, rot: "0 90 0"},
+      {x: -9.9, y: 2.2, z: -45, rot: "0 90 0"},
+      {x: -9.9, y: 2.2, z: -60, rot: "0 90 0"},
+      {x: -9.9, y: 2.2, z: -75, rot: "0 90 0"},
+      {x: -9.9, y: 2.2, z: -90, rot: "0 90 0"},
+      {x: -9.9, y: 2.2, z: -105, rot: "0 90 0"},
+      {x: -9.9, y: 2.2, z: -120, rot: "0 90 0"},
+      // East Wall (X = -0.1, facing West: rot "0 -90 0")
+      {x: -0.1, y: 2.2, z: -15, rot: "0 -90 0"},
+      {x: -0.1, y: 2.2, z: -30, rot: "0 -90 0"},
+      {x: -0.1, y: 2.2, z: -45, rot: "0 -90 0"},
+      {x: -0.1, y: 2.2, z: -60, rot: "0 -90 0"},
+      {x: -0.1, y: 2.2, z: -75, rot: "0 -90 0"},
+      {x: -0.1, y: 2.2, z: -90, rot: "0 -90 0"},
+      {x: -0.1, y: 2.2, z: -105, rot: "0 -90 0"},
+      {x: -0.1, y: 2.2, z: -120, rot: "0 -90 0"}
     ];
 
     // Anchors for Dopamine Hall Rooms 1-6
     const dopamineAnchors = {
-      // Group 1 (X: 6 to 14, center 10). 6 anchors.
+      // Group 1: 6 anchors (Room 1: Z = 0 to -52)
       "1": [
-        {x: 8.5, y: 2.2, z: -4.9, rot: "0 0 0"},
-        {x: 11.5, y: 2.2, z: -4.9, rot: "0 0 0"},
-        {x: 8.5, y: 2.2, z: 4.9, rot: "0 180 0"},
-        {x: 11.5, y: 2.2, z: 4.9, rot: "0 180 0"},
-        {x: 6.1, y: 2.2, z: -3.5, rot: "0 90 0"},
-        {x: 6.1, y: 2.2, z: 3.5, rot: "0 90 0"}
+        {x: 9.9, y: 2.2, z: -15, rot: "0 -90 0"},
+        {x: 9.9, y: 2.2, z: -30, rot: "0 -90 0"},
+        {x: 9.9, y: 2.2, z: -45, rot: "0 -90 0"},
+        {x: 0.1, y: 2.2, z: -15, rot: "0 90 0"},
+        {x: 0.1, y: 2.2, z: -30, rot: "0 90 0"},
+        {x: 0.1, y: 2.2, z: -45, rot: "0 90 0"}
       ],
-      // Group 2 (X: 14 to 26, center 20). 24 anchors.
+      // Group 2: 24 anchors (Room 2: Z = -52 to -150)
       "2": [
-        // North Wall
-        {x: 15.5, y: 2.2, z: -4.9, rot: "0 0 0"},
-        {x: 17.5, y: 2.2, z: -4.9, rot: "0 0 0"},
-        {x: 19.5, y: 2.2, z: -4.9, rot: "0 0 0"},
-        {x: 21.5, y: 2.2, z: -4.9, rot: "0 0 0"},
-        {x: 23.5, y: 2.2, z: -4.9, rot: "0 0 0"},
-        {x: 25.5, y: 2.2, z: -4.9, rot: "0 0 0"},
-        // South Wall
-        {x: 15.5, y: 2.2, z: 4.9, rot: "0 180 0"},
-        {x: 17.5, y: 2.2, z: 4.9, rot: "0 180 0"},
-        {x: 19.5, y: 2.2, z: 4.9, rot: "0 180 0"},
-        {x: 21.5, y: 2.2, z: 4.9, rot: "0 180 0"},
-        {x: 23.5, y: 2.2, z: 4.9, rot: "0 180 0"},
-        {x: 25.5, y: 2.2, z: 4.9, rot: "0 180 0"},
-        // Outer West/East Walls
-        {x: 14.1, y: 2.2, z: -3.5, rot: "0 90 0"},
-        {x: 14.1, y: 2.2, z: 3.5, rot: "0 90 0"},
-        {x: 25.9, y: 2.2, z: -3.5, rot: "0 -90 0"},
-        {x: 25.9, y: 2.2, z: 3.5, rot: "0 -90 0"},
-        // Center Divider (X=20, North Z=-4 to -1)
-        {x: 19.9, y: 2.2, z: -3.2, rot: "0 90 0"},
-        {x: 19.9, y: 2.2, z: -1.8, rot: "0 90 0"},
-        {x: 20.1, y: 2.2, z: -3.2, rot: "0 -90 0"},
-        {x: 20.1, y: 2.2, z: -1.8, rot: "0 -90 0"},
-        // Center Divider (X=20, South Z=1 to 4)
-        {x: 19.9, y: 2.2, z: 1.8, rot: "0 90 0"},
-        {x: 19.9, y: 2.2, z: 3.2, rot: "0 90 0"},
-        {x: 20.1, y: 2.2, z: 1.8, rot: "0 -90 0"},
-        {x: 20.1, y: 2.2, z: 3.2, rot: "0 -90 0"}
+        // East Wall (X = 9.9)
+        {x: 9.9, y: 2.2, z: -67, rot: "0 -90 0"},
+        {x: 9.9, y: 2.2, z: -82, rot: "0 -90 0"},
+        {x: 9.9, y: 2.2, z: -97, rot: "0 -90 0"},
+        {x: 9.9, y: 2.2, z: -112, rot: "0 -90 0"},
+        {x: 9.9, y: 2.2, z: -127, rot: "0 -90 0"},
+        {x: 9.9, y: 2.2, z: -142, rot: "0 -90 0"},
+        // West Wall (X = 0.1)
+        {x: 0.1, y: 2.2, z: -67, rot: "0 90 0"},
+        {x: 0.1, y: 2.2, z: -82, rot: "0 90 0"},
+        {x: 0.1, y: 2.2, z: -97, rot: "0 90 0"},
+        {x: 0.1, y: 2.2, z: -112, rot: "0 90 0"},
+        {x: 0.1, y: 2.2, z: -127, rot: "0 90 0"},
+        {x: 0.1, y: 2.2, z: -142, rot: "0 90 0"},
+        // Center Divider East Side (X = 5.1)
+        {x: 5.1, y: 2.2, z: -67, rot: "0 90 0"},
+        {x: 5.1, y: 2.2, z: -82, rot: "0 90 0"},
+        {x: 5.1, y: 2.2, z: -97, rot: "0 90 0"},
+        {x: 5.1, y: 2.2, z: -112, rot: "0 90 0"},
+        {x: 5.1, y: 2.2, z: -127, rot: "0 90 0"},
+        {x: 5.1, y: 2.2, z: -142, rot: "0 90 0"},
+        // Center Divider West Side (X = 4.9)
+        {x: 4.9, y: 2.2, z: -67, rot: "0 -90 0"},
+        {x: 4.9, y: 2.2, z: -82, rot: "0 -90 0"},
+        {x: 4.9, y: 2.2, z: -97, rot: "0 -90 0"},
+        {x: 4.9, y: 2.2, z: -112, rot: "0 -90 0"},
+        {x: 4.9, y: 2.2, z: -127, rot: "0 -90 0"},
+        {x: 4.9, y: 2.2, z: -142, rot: "0 -90 0"}
       ],
-      // Group 3 (X: 26 to 35, center 30.5). 11 anchors.
+      // Group 3: 11 anchors (Room 3: Z = -150 to -248)
       "3": [
-        {x: 28.5, y: 2.2, z: -4.9, rot: "0 0 0"},
-        {x: 31.0, y: 2.2, z: -4.9, rot: "0 0 0"},
-        {x: 33.5, y: 2.2, z: -4.9, rot: "0 0 0"},
-        {x: 28.5, y: 2.2, z: 4.9, rot: "0 180 0"},
-        {x: 31.0, y: 2.2, z: 4.9, rot: "0 180 0"},
-        {x: 33.5, y: 2.2, z: 4.9, rot: "0 180 0"},
-        {x: 26.1, y: 2.2, z: -3.5, rot: "0 90 0"},
-        {x: 26.1, y: 2.2, z: 3.5, rot: "0 90 0"},
-        {x: 34.9, y: 2.2, z: -3.5, rot: "0 -90 0"},
-        {x: 34.9, y: 2.2, z: 3.5, rot: "0 -90 0"},
-        {x: 34.9, y: 2.2, z: -2.0, rot: "0 -90 0"} // asymmetric offset anchor to fit 11th image
+        // East Wall
+        {x: 9.9, y: 2.2, z: -165, rot: "0 -90 0"},
+        {x: 9.9, y: 2.2, z: -180, rot: "0 -90 0"},
+        {x: 9.9, y: 2.2, z: -195, rot: "0 -90 0"},
+        {x: 9.9, y: 2.2, z: -210, rot: "0 -90 0"},
+        {x: 9.9, y: 2.2, z: -225, rot: "0 -90 0"},
+        {x: 9.9, y: 2.2, z: -240, rot: "0 -90 0"},
+        // West Wall
+        {x: 0.1, y: 2.2, z: -165, rot: "0 90 0"},
+        {x: 0.1, y: 2.2, z: -180, rot: "0 90 0"},
+        {x: 0.1, y: 2.2, z: -195, rot: "0 90 0"},
+        {x: 0.1, y: 2.2, z: -210, rot: "0 90 0"},
+        {x: 0.1, y: 2.2, z: -225, rot: "0 90 0"}
       ],
-      // Group 4 (X: 35 to 44, center 39.5). 12 anchors.
+      // Group 4: 12 anchors (Room 4: Z = -248 to -346)
       "4": [
-        {x: 37.0, y: 2.2, z: -4.9, rot: "0 0 0"},
-        {x: 39.5, y: 2.2, z: -4.9, rot: "0 0 0"},
-        {x: 42.0, y: 2.2, z: -4.9, rot: "0 0 0"},
-        {x: 37.0, y: 2.2, z: 4.9, rot: "0 180 0"},
-        {x: 39.5, y: 2.2, z: 4.9, rot: "0 180 0"},
-        {x: 42.0, y: 2.2, z: 4.9, rot: "0 180 0"},
-        {x: 35.1, y: 2.2, z: -3.5, rot: "0 90 0"},
-        {x: 35.1, y: 2.2, z: 3.5, rot: "0 90 0"},
-        {x: 35.1, y: 2.2, z: -2.0, rot: "0 90 0"},
-        {x: 43.9, y: 2.2, z: -3.5, rot: "0 -90 0"},
-        {x: 43.9, y: 2.2, z: 3.5, rot: "0 -90 0"},
-        {x: 43.9, y: 2.2, z: -2.0, rot: "0 -90 0"}
+        // East Wall
+        {x: 9.9, y: 2.2, z: -263, rot: "0 -90 0"},
+        {x: 9.9, y: 2.2, z: -278, rot: "0 -90 0"},
+        {x: 9.9, y: 2.2, z: -293, rot: "0 -90 0"},
+        {x: 9.9, y: 2.2, z: -308, rot: "0 -90 0"},
+        {x: 9.9, y: 2.2, z: -323, rot: "0 -90 0"},
+        {x: 9.9, y: 2.2, z: -338, rot: "0 -90 0"},
+        // West Wall
+        {x: 0.1, y: 2.2, z: -263, rot: "0 90 0"},
+        {x: 0.1, y: 2.2, z: -278, rot: "0 90 0"},
+        {x: 0.1, y: 2.2, z: -293, rot: "0 90 0"},
+        {x: 0.1, y: 2.2, z: -308, rot: "0 90 0"},
+        {x: 0.1, y: 2.2, z: -323, rot: "0 90 0"},
+        {x: 0.1, y: 2.2, z: -338, rot: "0 90 0"}
       ],
-      // Group 5 (X: 44 to 53, center 48.5). 10 anchors.
+      // Group 5: 10 anchors (Room 5: Z = -346 to -428)
       "5": [
-        {x: 46.0, y: 2.2, z: -4.9, rot: "0 0 0"},
-        {x: 48.5, y: 2.2, z: -4.9, rot: "0 0 0"},
-        {x: 51.0, y: 2.2, z: -4.9, rot: "0 0 0"},
-        {x: 46.0, y: 2.2, z: 4.9, rot: "0 180 0"},
-        {x: 48.5, y: 2.2, z: 4.9, rot: "0 180 0"},
-        {x: 51.0, y: 2.2, z: 4.9, rot: "0 180 0"},
-        {x: 44.1, y: 2.2, z: -3.5, rot: "0 90 0"},
-        {x: 44.1, y: 2.2, z: 3.5, rot: "0 90 0"},
-        {x: 52.9, y: 2.2, z: -3.5, rot: "0 -90 0"},
-        {x: 52.9, y: 2.2, z: 3.5, rot: "0 -90 0"}
+        // East Wall
+        {x: 9.9, y: 2.2, z: -361, rot: "0 -90 0"},
+        {x: 9.9, y: 2.2, z: -376, rot: "0 -90 0"},
+        {x: 9.9, y: 2.2, z: -391, rot: "0 -90 0"},
+        {x: 9.9, y: 2.2, z: -406, rot: "0 -90 0"},
+        {x: 9.9, y: 2.2, z: -421, rot: "0 -90 0"},
+        // West Wall
+        {x: 0.1, y: 2.2, z: -361, rot: "0 90 0"},
+        {x: 0.1, y: 2.2, z: -376, rot: "0 90 0"},
+        {x: 0.1, y: 2.2, z: -391, rot: "0 90 0"},
+        {x: 0.1, y: 2.2, z: -406, rot: "0 90 0"},
+        {x: 0.1, y: 2.2, z: -421, rot: "0 90 0"}
       ],
-      // Group 6 (X: 53 to 68, center 60.5). 12 anchors.
+      // Group 6: 12 anchors (Room 6: Z = -428 to -518)
       "6": [
-        {x: 55.5, y: 2.2, z: -4.9, rot: "0 0 0"},
-        {x: 59.0, y: 2.2, z: -4.9, rot: "0 0 0"},
-        {x: 62.5, y: 2.2, z: -4.9, rot: "0 0 0"},
-        {x: 55.5, y: 2.2, z: 4.9, rot: "0 180 0"},
-        {x: 59.0, y: 2.2, z: 4.9, rot: "0 180 0"},
-        {x: 62.5, y: 2.2, z: 4.9, rot: "0 180 0"},
-        {x: 53.1, y: 2.2, z: -3.5, rot: "0 90 0"},
-        {x: 53.1, y: 2.2, z: 3.5, rot: "0 90 0"},
-        // East Back Wall (no door)
-        {x: 67.9, y: 2.2, z: -3.5, rot: "0 -90 0"},
-        {x: 67.9, y: 2.2, z: -1.2, rot: "0 -90 0"},
-        {x: 67.9, y: 2.2, z: 1.2, rot: "0 -90 0"},
-        {x: 67.9, y: 2.2, z: 3.5, rot: "0 -90 0"}
+        // East Wall
+        {x: 9.9, y: 2.2, z: -443, rot: "0 -90 0"},
+        {x: 9.9, y: 2.2, z: -458, rot: "0 -90 0"},
+        {x: 9.9, y: 2.2, z: -473, rot: "0 -90 0"},
+        {x: 9.9, y: 2.2, z: -488, rot: "0 -90 0"},
+        {x: 9.9, y: 2.2, z: -503, rot: "0 -90 0"},
+        // West Wall
+        {x: 0.1, y: 2.2, z: -443, rot: "0 90 0"},
+        {x: 0.1, y: 2.2, z: -458, rot: "0 90 0"},
+        {x: 0.1, y: 2.2, z: -473, rot: "0 90 0"},
+        {x: 0.1, y: 2.2, z: -488, rot: "0 90 0"},
+        {x: 0.1, y: 2.2, z: -503, rot: "0 90 0"},
+        // North Back Wall
+        {x: 3.3, y: 2.2, z: -517.9, rot: "0 180 0"},
+        {x: 6.7, y: 2.2, z: -517.9, rot: "0 180 0"}
       ]
     };
 
@@ -993,7 +999,7 @@
         if (!anchor) return;
 
         const path = `assets/Квітнення/${filename}`;
-        const title = `КВІТНЕННЯ // РОБОТА #${index + 1}`;
+        const title = `BLOOM // WORK #${index + 1}`;
         const entity = createPaintingEntity(path, anchor, title, 'bloom');
         container.appendChild(entity);
       });
@@ -1008,7 +1014,7 @@
           if (!anchor) return;
 
           const path = `assets/Дофамін/${groupKey}/${filename}`;
-          const title = `ДОФАМІН // ГРУПА ${groupKey} // РОБОТА #${index + 1}`;
+          const title = `DOPAMINE // GROUP ${groupKey} // WORK #${index + 1}`;
           const entity = createPaintingEntity(path, anchor, title, `dopamine_${groupKey}`);
           container.appendChild(entity);
         });
