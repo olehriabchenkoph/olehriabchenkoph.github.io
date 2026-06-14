@@ -398,77 +398,79 @@
     });
 
     // ----------------------------------------------------
-    // Custom A-Frame Component: Accelerometer Displacement (6DoF Fallback)
-    // Integrates device accelerometer data to shift the camera rig when you push/pull
-    // the phone in space, without reacting to simple hand shakes.
-    // Disabled automatically when native WebXR AR tracking is active.
+    // Custom A-Frame Component: Swipe Movement Controls
+    // Listens for vertical swipe/drag events on mobile screens to translate the camera rig
+    // forward or backward relative to the camera heading.
     // ----------------------------------------------------
-    AFRAME.registerComponent('accelerometer-displacement', {
+    AFRAME.registerComponent('swipe-movement-controls', {
       schema: {
-        sensitivity: {type: 'number', default: 0.08},
-        damping: {type: 'number', default: 0.82}
+        speed: {type: 'number', default: 0.15} // sensitivity scaling
       },
       init: function () {
-        this.velocity = new THREE.Vector3();
-        this.smoothAcc = new THREE.Vector3();
         this.rig = this.el;
         this.camera = document.querySelector('#camera').object3D;
-        
-        this.onDeviceMotion = this.onDeviceMotion.bind(this);
-        window.addEventListener('devicemotion', this.onDeviceMotion);
+        this.touchStartY = 0;
+        this.isSwiping = false;
+
+        this.onTouchStart = this.onTouchStart.bind(this);
+        this.onTouchMove = this.onTouchMove.bind(this);
+        this.onTouchEnd = this.onTouchEnd.bind(this);
+
+        window.addEventListener('touchstart', this.onTouchStart, {passive: false});
+        window.addEventListener('touchmove', this.onTouchMove, {passive: false});
+        window.addEventListener('touchend', this.onTouchEnd);
       },
-      onDeviceMotion: function (event) {
-        if (this.el.sceneEl.is('ar-mode')) return;
-        
-        const acc = event.acceleration;
-        if (!acc) return;
-        
-        const ax = acc.x || 0;
-        const ay = acc.y || 0;
-        const az = acc.z || 0;
-        
-        // Low-pass filter (complementary filter) to smooth out high-frequency shakes
-        const filterVal = 0.25; // weight of new sample
-        this.smoothAcc.x = this.smoothAcc.x * (1 - filterVal) + ax * filterVal;
-        this.smoothAcc.z = this.smoothAcc.z * (1 - filterVal) + az * filterVal;
-        
-        // Noise threshold for smoothed values
-        const gate = 0.12;
-        let lx = Math.abs(this.smoothAcc.x) > gate ? this.smoothAcc.x : 0;
-        let lz = Math.abs(this.smoothAcc.z) > gate ? this.smoothAcc.z : 0;
-        
-        // Rotate local phone displacement into world camera space
-        const accelVec = new THREE.Vector3(lx, 0, lz);
-        accelVec.applyQuaternion(this.camera.quaternion);
-        accelVec.y = 0; // Lock to horizontal movement
-        
-        // Accumulate velocity
-        this.velocity.addScaledVector(accelVec, this.data.sensitivity);
+      onTouchStart: function (e) {
+        if (e.touches.length === 1) {
+          this.touchStartY = e.touches[0].clientY;
+          this.isSwiping = true;
+        }
       },
-      tick: function (time, timeDelta) {
-        if (this.el.sceneEl.is('ar-mode')) return;
-        
-        if (this.velocity.lengthSq() < 0.0001) {
-          this.velocity.set(0, 0, 0);
-          return;
+      onTouchMove: function (e) {
+        if (!this.isSwiping || e.touches.length !== 1) return;
+
+        const currentY = e.touches[0].clientY;
+        const deltaY = currentY - this.touchStartY; // negative = swipe up, positive = swipe down
+
+        const deadzone = 8; // pixel threshold
+        if (Math.abs(deltaY) > deadzone) {
+          // Swipe up (deltaY < 0) -> move forward (+Z in camera local space, which is -Z in world coords)
+          // Swipe down (deltaY > 0) -> move backward
+          const dir = deltaY < 0 ? 1 : -1;
+          
+          // Displacement speed scales with swipe speed/delta
+          const speedFactor = Math.min(Math.abs(deltaY) * 0.005, 0.2);
+          
+          // Calculate camera horizontal facing direction vector
+          const forward = new THREE.Vector3(0, 0, -1);
+          forward.applyQuaternion(this.camera.quaternion);
+          forward.y = 0;
+          forward.normalize();
+
+          // Translate rig
+          const pos = this.rig.object3D.position;
+          pos.addScaledVector(forward, dir * speedFactor * this.data.speed);
+
+          // Force bounds check immediately
+          const boundary = this.rig.components['room-boundary'];
+          if (boundary) {
+            boundary.tick();
+          }
         }
+
+        // Adjust tracking start position for next frame delta calculation
+        this.touchStartY = currentY;
         
-        // Translate rig
-        const pos = this.rig.object3D.position;
-        const dt = Math.min(timeDelta / 1000, 0.1);
-        pos.addScaledVector(this.velocity, dt);
-        
-        // Apply heavy damping to prevent persistent sliding drift
-        this.velocity.multiplyScalar(this.data.damping);
-        
-        // Force bounds check immediately
-        const boundary = this.rig.components['room-boundary'];
-        if (boundary) {
-          boundary.tick();
-        }
+        // Prevent default browser page scrolling while swiping inside the gallery
+        e.preventDefault();
+      },
+      onTouchEnd: function () {
+        this.isSwiping = false;
       },
       remove: function () {
-        window.removeEventListener('devicemotion', this.onDeviceMotion);
+        window.removeEventListener('touchstart', this.onTouchStart);
+        window.removeEventListener('touchmove', this.onTouchMove);
+        window.removeEventListener('touchend', this.onTouchEnd);
       }
     });
 
@@ -640,10 +642,10 @@
     </a-assets>
 
     <!-- Camera Rig -->
-    <a-entity id="camera-rig" position="0 0 0" fps-wasd-controls="speed: 0.07; camera: #camera" accelerometer-displacement="sensitivity: 0.08; damping: 0.82" teleport-handler="floorId: #floor; indicatorId: #teleport-indicator" room-boundary="minX: -7.2; maxX: 7.2; minZ: -7.2; maxZ: 7.2">
+    <a-entity id="camera-rig" position="0 0 0" fps-wasd-controls="speed: 0.07; camera: #camera" swipe-movement-controls="speed: 0.15" teleport-handler="floorId: #floor; indicatorId: #teleport-indicator" room-boundary="minX: -7.2; maxX: 7.2; minZ: -7.2; maxZ: 7.2">
       
       <!-- Camera Entity -->
-      <a-entity id="camera" camera="near: 0.1; far: 100" position="0 1.6 0" look-controls="pointerLockEnabled: false; touchEnabled: true;">
+      <a-entity id="camera" camera="near: 0.1; far: 100" position="0 1.6 0" look-controls="pointerLockEnabled: false; touchEnabled: false;">
         
         <!-- Interactive Mouse Raycaster for Tap/Click mapping -->
         <a-entity raycaster="objects: .teleportable, .interactable; far: 25" cursor="rayOrigin: mouse"></a-entity>
@@ -757,24 +759,12 @@
     function requestAccess() {
       const overlay = document.getElementById('overlay-ui');
       const hud = document.getElementById('hud-overlay');
-      const sceneEl = document.querySelector('a-scene');
 
       function hideOverlay() {
         overlay.classList.add('fade-out');
         setTimeout(() => {
           overlay.style.display = 'none';
           hud.classList.add('visible');
-          
-          // Programmatically enter WebXR AR mode for precise camera-based tracking
-          if (sceneEl) {
-            if (sceneEl.hasLoaded) {
-              sceneEl.enterAR();
-            } else {
-              sceneEl.addEventListener('loaded', () => {
-                sceneEl.enterAR();
-              });
-            }
-          }
         }, 800);
       }
 
