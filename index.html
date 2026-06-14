@@ -212,6 +212,7 @@
       max-width: 850px;
       max-height: 90vh;
       overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
       display: grid;
       grid-template-columns: 1.2fr 1fr;
       box-shadow: 0 20px 50px rgba(0,0,0,0.1);
@@ -337,6 +338,24 @@
   </style>
 
   <script>
+    // Mouse drag vs click detector for desktop look controls
+    let mouseDownX = 0;
+    let mouseDownY = 0;
+    window.isDragging = false;
+
+    window.addEventListener('mousedown', (e) => {
+      mouseDownX = e.clientX;
+      mouseDownY = e.clientY;
+      window.isDragging = false;
+    });
+
+    window.addEventListener('mouseup', (e) => {
+      const dist = Math.hypot(e.clientX - mouseDownX, e.clientY - mouseDownY);
+      if (dist > 8) {
+        window.isDragging = true;
+      }
+    });
+
     // ----------------------------------------------------
     // Helper: Clamp position to the valid gallery room boundaries
     // ----------------------------------------------------
@@ -495,7 +514,7 @@
     // ----------------------------------------------------
     AFRAME.registerComponent('swipe-movement-controls', {
       schema: {
-        speed: {type: 'number', default: 0.8} // sensitivity scaling
+        speed: {type: 'number', default: 2.5} // sensitivity scaling
       },
       init: function () {
         this.rig = this.el;
@@ -513,6 +532,9 @@
         window.addEventListener('touchend', this.onTouchEnd);
       },
       onTouchStart: function (e) {
+        const modal = document.getElementById('art-modal');
+        if (modal && modal.classList.contains('active')) return;
+
         if (e.touches.length === 1) {
           this.touchStartX = e.touches[0].clientX;
           this.touchStartY = e.touches[0].clientY;
@@ -520,6 +542,9 @@
         }
       },
       onTouchMove: function (e) {
+        const modal = document.getElementById('art-modal');
+        if (modal && modal.classList.contains('active')) return;
+
         if (!this.isSwiping || e.touches.length !== 1) return;
 
         const currentX = e.touches[0].clientX;
@@ -558,7 +583,7 @@
         if (moveVec.lengthSq() > 0) {
           moveVec.normalize();
           const maxDelta = Math.max(Math.abs(deltaX), Math.abs(deltaY));
-          const totalSpeed = Math.min(maxDelta * 0.02 * this.data.speed, 0.25);
+          const totalSpeed = Math.min(maxDelta * 0.03 * this.data.speed, 1.5);
           
           const pos = this.rig.object3D.position;
           pos.addScaledVector(moveVec, totalSpeed);
@@ -601,6 +626,7 @@
         this.floor = document.querySelector(this.data.floorId);
         
         this.floor.addEventListener('click', (evt) => {
+          if (window.isDragging) return; // Ignore drag release clicks
           // Disable teleportation on mobile/tablet (only allow swipes)
           if (AFRAME.utils.device.isMobile()) return;
           
@@ -771,7 +797,7 @@
   <a-scene loading-screen="dotsColor: #5c5c93; backgroundColor: #ffffff" renderer="antialias: true; colorManagement: true;">
     
     <!-- Camera Rig -->
-    <a-entity id="camera-rig" position="0 0 6" fps-wasd-controls="speed: 0.07; camera: #camera" swipe-movement-controls="speed: 0.8" teleport-handler="floorId: #floor; indicatorId: #teleport-indicator" room-boundary>
+    <a-entity id="camera-rig" position="0 0 6" fps-wasd-controls="speed: 0.07; camera: #camera" swipe-movement-controls="speed: 2.5" teleport-handler="floorId: #floor; indicatorId: #teleport-indicator" room-boundary>
       
       <!-- Camera Entity -->
       <a-entity id="camera" camera="near: 0.1; far: 100" position="0 1.6 0" look-controls="pointerLockEnabled: false; touchEnabled: false;">
@@ -905,24 +931,40 @@
       const bloomAnchorsList = [];
       let lastZWest = -8;
       let lastZEast = -8;
+      const bloomSidePhotos = bloomPaths.slice(0, 14);
+      const bloomNorthPhotos = bloomPaths.slice(14);
 
-      bloomPaths.forEach((src, index) => {
+      bloomSidePhotos.forEach((src, index) => {
         const ar = arMap[src] || 1.0;
         const w = 4.0 * ar;
         const gap = 1.5 * w; // edge-to-edge gap is exactly 1.5x width
         
         if (index % 2 === 0) {
           const z = lastZWest - w / 2;
-          bloomAnchorsList.push({ x: -9.9, y: 2.2, z, rot: "0 90 0", src, descKey: 'bloom', title: `BLOOM // WORK #${index + 1}` });
+          bloomAnchorsList.push({ x: -9.95, y: 2.8, z, rot: "0 90 0", src, descKey: 'bloom', title: `BLOOM // WORK #${index + 1}` });
           lastZWest = z - w / 2 - gap;
         } else {
           const z = lastZEast - w / 2;
-          bloomAnchorsList.push({ x: -0.1, y: 2.2, z, rot: "0 -90 0", src, descKey: 'bloom', title: `BLOOM // WORK #${index + 1}` });
+          bloomAnchorsList.push({ x: -0.15, y: 2.8, z, rot: "0 -90 0", src, descKey: 'bloom', title: `BLOOM // WORK #${index + 1}` });
           lastZEast = z - w / 2 - gap;
         }
       });
       
-      const bloomEnd = Math.min(lastZWest, lastZEast) - 4.0;
+      const bloomEnd = Math.min(lastZWest, lastZEast) + gap - 2.0;
+
+      // Add the two North wall paintings (offset 5cm South of the wall, facing South rot 0 0 0)
+      if (bloomNorthPhotos.length > 0) {
+        bloomAnchorsList.push({
+          x: -3.3, y: 2.8, z: bloomEnd + 0.05, rot: "0 0 0",
+          src: bloomNorthPhotos[0], descKey: 'bloom', title: `BLOOM // WORK #15`
+        });
+      }
+      if (bloomNorthPhotos.length > 1) {
+        bloomAnchorsList.push({
+          x: -6.7, y: 2.8, z: bloomEnd + 0.05, rot: "0 0 0",
+          src: bloomNorthPhotos[1], descKey: 'bloom', title: `BLOOM // WORK #16`
+        });
+      }
 
       // 2. Calculate Dopamine anchors split across 6 rooms
       const dopamineAnchorsMap = {};
@@ -940,11 +982,11 @@
         const gap = 1.5 * w;
         if (index % 2 === 0) {
           const z = lastZ1E - w / 2;
-          dopamineAnchorsMap["1"].push({ x: 9.9, y: 2.2, z, rot: "0 -90 0", src, descKey: 'dopamine_1', title: `DOPAMINE // GROUP 1 // WORK #${index + 1}` });
+          dopamineAnchorsMap["1"].push({ x: 9.95, y: 2.8, z, rot: "0 -90 0", src, descKey: 'dopamine_1', title: `DOPAMINE // GROUP 1 // WORK #${index + 1}` });
           lastZ1E = z - w / 2 - gap;
         } else {
           const z = lastZ1W - w / 2;
-          dopamineAnchorsMap["1"].push({ x: 0.1, y: 2.2, z, rot: "0 90 0", src, descKey: 'dopamine_1', title: `DOPAMINE // GROUP 1 // WORK #${index + 1}` });
+          dopamineAnchorsMap["1"].push({ x: 0.15, y: 2.8, z, rot: "0 90 0", src, descKey: 'dopamine_1', title: `DOPAMINE // GROUP 1 // WORK #${index + 1}` });
           lastZ1W = z - w / 2 - gap;
         }
       });
@@ -965,19 +1007,19 @@
         const mode = index % 4;
         if (mode === 0) {
           const z = lastZ2E - w / 2;
-          dopamineAnchorsMap["2"].push({ x: 9.9, y: 2.2, z, rot: "0 -90 0", src, descKey: 'dopamine_2', title: `DOPAMINE // GROUP 2 // WORK #${index + 1}` });
+          dopamineAnchorsMap["2"].push({ x: 9.95, y: 2.8, z, rot: "0 -90 0", src, descKey: 'dopamine_2', title: `DOPAMINE // GROUP 2 // WORK #${index + 1}` });
           lastZ2E = z - w / 2 - gap;
         } else if (mode === 1) {
           const z = lastZ2W - w / 2;
-          dopamineAnchorsMap["2"].push({ x: 0.1, y: 2.2, z, rot: "0 90 0", src, descKey: 'dopamine_2', title: `DOPAMINE // GROUP 2 // WORK #${index + 1}` });
+          dopamineAnchorsMap["2"].push({ x: 0.15, y: 2.8, z, rot: "0 90 0", src, descKey: 'dopamine_2', title: `DOPAMINE // GROUP 2 // WORK #${index + 1}` });
           lastZ2W = z - w / 2 - gap;
         } else if (mode === 2) {
           const z = lastZ2DivE - w / 2;
-          dopamineAnchorsMap["2"].push({ x: 5.1, y: 2.2, z, rot: "0 90 0", src, descKey: 'dopamine_2', title: `DOPAMINE // GROUP 2 // WORK #${index + 1}` });
+          dopamineAnchorsMap["2"].push({ x: 5.10, y: 2.8, z, rot: "0 90 0", src, descKey: 'dopamine_2', title: `DOPAMINE // GROUP 2 // WORK #${index + 1}` });
           lastZ2DivE = z - w / 2 - gap;
         } else {
           const z = lastZ2DivW - w / 2;
-          dopamineAnchorsMap["2"].push({ x: 4.9, y: 2.2, z, rot: "0 -90 0", src, descKey: 'dopamine_2', title: `DOPAMINE // GROUP 2 // WORK #${index + 1}` });
+          dopamineAnchorsMap["2"].push({ x: 4.90, y: 2.8, z, rot: "0 -90 0", src, descKey: 'dopamine_2', title: `DOPAMINE // GROUP 2 // WORK #${index + 1}` });
           lastZ2DivW = z - w / 2 - gap;
         }
       });
@@ -995,11 +1037,11 @@
         const gap = 1.5 * w;
         if (index % 2 === 0) {
           const z = lastZ3E - w / 2;
-          dopamineAnchorsMap["3"].push({ x: 9.9, y: 2.2, z, rot: "0 -90 0", src, descKey: 'dopamine_3', title: `DOPAMINE // GROUP 3 // WORK #${index + 1}` });
+          dopamineAnchorsMap["3"].push({ x: 9.95, y: 2.8, z, rot: "0 -90 0", src, descKey: 'dopamine_3', title: `DOPAMINE // GROUP 3 // WORK #${index + 1}` });
           lastZ3E = z - w / 2 - gap;
         } else {
           const z = lastZ3W - w / 2;
-          dopamineAnchorsMap["3"].push({ x: 0.1, y: 2.2, z, rot: "0 90 0", src, descKey: 'dopamine_3', title: `DOPAMINE // GROUP 3 // WORK #${index + 1}` });
+          dopamineAnchorsMap["3"].push({ x: 0.15, y: 2.8, z, rot: "0 90 0", src, descKey: 'dopamine_3', title: `DOPAMINE // GROUP 3 // WORK #${index + 1}` });
           lastZ3W = z - w / 2 - gap;
         }
       });
@@ -1016,11 +1058,11 @@
         const gap = 1.5 * w;
         if (index % 2 === 0) {
           const z = lastZ4E - w / 2;
-          dopamineAnchorsMap["4"].push({ x: 9.9, y: 2.2, z, rot: "0 -90 0", src, descKey: 'dopamine_4', title: `DOPAMINE // GROUP 4 // WORK #${index + 1}` });
+          dopamineAnchorsMap["4"].push({ x: 9.95, y: 2.8, z, rot: "0 -90 0", src, descKey: 'dopamine_4', title: `DOPAMINE // GROUP 4 // WORK #${index + 1}` });
           lastZ4E = z - w / 2 - gap;
         } else {
           const z = lastZ4W - w / 2;
-          dopamineAnchorsMap["4"].push({ x: 0.1, y: 2.2, z, rot: "0 90 0", src, descKey: 'dopamine_4', title: `DOPAMINE // GROUP 4 // WORK #${index + 1}` });
+          dopamineAnchorsMap["4"].push({ x: 0.15, y: 2.8, z, rot: "0 90 0", src, descKey: 'dopamine_4', title: `DOPAMINE // GROUP 4 // WORK #${index + 1}` });
           lastZ4W = z - w / 2 - gap;
         }
       });
@@ -1037,11 +1079,11 @@
         const gap = 1.5 * w;
         if (index % 2 === 0) {
           const z = lastZ5E - w / 2;
-          dopamineAnchorsMap["5"].push({ x: 9.9, y: 2.2, z, rot: "0 -90 0", src, descKey: 'dopamine_5', title: `DOPAMINE // GROUP 5 // WORK #${index + 1}` });
+          dopamineAnchorsMap["5"].push({ x: 9.95, y: 2.8, z, rot: "0 -90 0", src, descKey: 'dopamine_5', title: `DOPAMINE // GROUP 5 // WORK #${index + 1}` });
           lastZ5E = z - w / 2 - gap;
         } else {
           const z = lastZ5W - w / 2;
-          dopamineAnchorsMap["5"].push({ x: 0.1, y: 2.2, z, rot: "0 90 0", src, descKey: 'dopamine_5', title: `DOPAMINE // GROUP 5 // WORK #${index + 1}` });
+          dopamineAnchorsMap["5"].push({ x: 0.15, y: 2.8, z, rot: "0 90 0", src, descKey: 'dopamine_5', title: `DOPAMINE // GROUP 5 // WORK #${index + 1}` });
           lastZ5W = z - w / 2 - gap;
         }
       });
@@ -1060,11 +1102,11 @@
         if (index < 10) {
           if (index % 2 === 0) {
             const z = lastZ6E - w / 2;
-            dopamineAnchorsMap["6"].push({ x: 9.9, y: 2.2, z, rot: "0 -90 0", src, descKey: 'dopamine_6', title: `DOPAMINE // GROUP 6 // WORK #${index + 1}` });
+            dopamineAnchorsMap["6"].push({ x: 9.95, y: 2.8, z, rot: "0 -90 0", src, descKey: 'dopamine_6', title: `DOPAMINE // GROUP 6 // WORK #${index + 1}` });
             lastZ6E = z - w / 2 - gap;
           } else {
             const z = lastZ6W - w / 2;
-            dopamineAnchorsMap["6"].push({ x: 0.1, y: 2.2, z, rot: "0 90 0", src, descKey: 'dopamine_6', title: `DOPAMINE // GROUP 6 // WORK #${index + 1}` });
+            dopamineAnchorsMap["6"].push({ x: 0.15, y: 2.8, z, rot: "0 90 0", src, descKey: 'dopamine_6', title: `DOPAMINE // GROUP 6 // WORK #${index + 1}` });
             lastZ6W = z - w / 2 - gap;
           }
         }
@@ -1073,14 +1115,14 @@
       const room6End = Math.min(lastZ6E, lastZ6W) - 6.0;
       dopamineRoomEnds.push(room6End);
 
-      // Place remaining photos in Group 6 on the back wall
+      // Place remaining photos in Group 6 on the back wall (offset 5cm South, rot 0 0 180 to fix upside down orientation)
       if (group6Photos.length > 10) {
         const src10 = group6Photos[10];
-        dopamineAnchorsMap["6"].push({ x: 3.3, y: 2.2, z: room6End + 0.1, rot: "0 180 0", src: src10, descKey: 'dopamine_6', title: `DOPAMINE // GROUP 6 // WORK #11` });
+        dopamineAnchorsMap["6"].push({ x: 3.3, y: 2.8, z: room6End + 0.05, rot: "0 0 180", src: src10, descKey: 'dopamine_6', title: `DOPAMINE // GROUP 6 // WORK #11` });
       }
       if (group6Photos.length > 11) {
         const src11 = group6Photos[11];
-        dopamineAnchorsMap["6"].push({ x: 6.7, y: 2.2, z: room6End + 0.1, rot: "0 180 0", src: src11, descKey: 'dopamine_6', title: `DOPAMINE // GROUP 6 // WORK #12` });
+        dopamineAnchorsMap["6"].push({ x: 6.7, y: 2.8, z: room6End + 0.05, rot: "0 0 180", src: src11, descKey: 'dopamine_6', title: `DOPAMINE // GROUP 6 // WORK #12` });
       }
 
       // Set global boundaries
@@ -1133,6 +1175,17 @@
           container.appendChild(entity);
         });
       });
+
+      // Stop touch event propagation inside .modal-card to allow normal mobile one-finger scrolling
+      const card = document.querySelector('.modal-card');
+      if (card) {
+        const stopProp = (e) => {
+          e.stopPropagation();
+        };
+        card.addEventListener('touchstart', stopProp, {passive: true});
+        card.addEventListener('touchmove', stopProp, {passive: true});
+        card.addEventListener('touchend', stopProp, {passive: true});
+      }
     });
 
     function createBoxWall(sceneEl, id, x, z, w, h, d, rotY) {
@@ -1162,6 +1215,7 @@
       el.setAttribute('dist-loader', `src: ${anch.src}; distance: 16`);
 
       el.addEventListener('click', () => {
+        if (window.isDragging) return;
         openArtwork(anch.title, anch.src, anch.descKey);
       });
 
