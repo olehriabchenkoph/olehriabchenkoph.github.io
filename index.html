@@ -410,6 +410,7 @@
       },
       init: function () {
         this.velocity = new THREE.Vector3();
+        this.smoothAcc = new THREE.Vector3();
         this.rig = this.el;
         this.camera = document.querySelector('#camera').object3D;
         
@@ -417,7 +418,6 @@
         window.addEventListener('devicemotion', this.onDeviceMotion);
       },
       onDeviceMotion: function (event) {
-        // Disable when native WebXR AR tracking is active
         if (this.el.sceneEl.is('ar-mode')) return;
         
         const acc = event.acceleration;
@@ -427,16 +427,20 @@
         const ay = acc.y || 0;
         const az = acc.z || 0;
         
-        // Noise gate to filter out ambient jiggle
-        const gate = 0.22;
-        let lx = Math.abs(ax) > gate ? ax : 0;
-        let lz = Math.abs(az) > gate ? az : 0;
+        // Low-pass filter (complementary filter) to smooth out high-frequency shakes
+        const filterVal = 0.25; // weight of new sample
+        this.smoothAcc.x = this.smoothAcc.x * (1 - filterVal) + ax * filterVal;
+        this.smoothAcc.z = this.smoothAcc.z * (1 - filterVal) + az * filterVal;
         
-        // In device coordinates: pushing phone forward is -Z, pulling is +Z
-        // We project this linear acceleration relative to the camera's orientation
+        // Noise threshold for smoothed values
+        const gate = 0.12;
+        let lx = Math.abs(this.smoothAcc.x) > gate ? this.smoothAcc.x : 0;
+        let lz = Math.abs(this.smoothAcc.z) > gate ? this.smoothAcc.z : 0;
+        
+        // Rotate local phone displacement into world camera space
         const accelVec = new THREE.Vector3(lx, 0, lz);
         accelVec.applyQuaternion(this.camera.quaternion);
-        accelVec.y = 0; // Lock to horizontal plane
+        accelVec.y = 0; // Lock to horizontal movement
         
         // Accumulate velocity
         this.velocity.addScaledVector(accelVec, this.data.sensitivity);
@@ -454,7 +458,7 @@
         const dt = Math.min(timeDelta / 1000, 0.1);
         pos.addScaledVector(this.velocity, dt);
         
-        // Apply damping to clear drift and bring camera to a stop
+        // Apply heavy damping to prevent persistent sliding drift
         this.velocity.multiplyScalar(this.data.damping);
         
         // Force bounds check immediately
@@ -753,12 +757,24 @@
     function requestAccess() {
       const overlay = document.getElementById('overlay-ui');
       const hud = document.getElementById('hud-overlay');
+      const sceneEl = document.querySelector('a-scene');
 
       function hideOverlay() {
         overlay.classList.add('fade-out');
         setTimeout(() => {
           overlay.style.display = 'none';
           hud.classList.add('visible');
+          
+          // Programmatically enter WebXR AR mode for precise camera-based tracking
+          if (sceneEl) {
+            if (sceneEl.hasLoaded) {
+              sceneEl.enterAR();
+            } else {
+              sceneEl.addEventListener('loaded', () => {
+                sceneEl.enterAR();
+              });
+            }
+          }
         }, 800);
       }
 
@@ -778,7 +794,7 @@
             hideOverlay(); // Fallback anyway
           });
       } else {
-        // Desktop or non-iOS browser
+        // Desktop or Android Chrome
         hideOverlay();
       }
     }
