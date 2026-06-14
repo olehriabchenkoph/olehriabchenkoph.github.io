@@ -404,11 +404,12 @@
     // ----------------------------------------------------
     AFRAME.registerComponent('swipe-movement-controls', {
       schema: {
-        speed: {type: 'number', default: 0.8} // Reduced speed from 1.5 to 0.8
+        speed: {type: 'number', default: 0.8} // displacement speed factor
       },
       init: function () {
         this.rig = this.el;
         this.camera = document.querySelector('#camera').object3D;
+        this.touchStartX = 0;
         this.touchStartY = 0;
         this.isSwiping = false;
 
@@ -422,6 +423,7 @@
       },
       onTouchStart: function (e) {
         if (e.touches.length === 1) {
+          this.touchStartX = e.touches[0].clientX;
           this.touchStartY = e.touches[0].clientY;
           this.isSwiping = true;
         }
@@ -429,27 +431,51 @@
       onTouchMove: function (e) {
         if (!this.isSwiping || e.touches.length !== 1) return;
 
+        const currentX = e.touches[0].clientX;
         const currentY = e.touches[0].clientY;
+        
+        const deltaX = currentX - this.touchStartX; // negative = swipe left, positive = swipe right
         const deltaY = currentY - this.touchStartY; // negative = swipe up, positive = swipe down
 
         const deadzone = 8; // pixel threshold
-        if (Math.abs(deltaY) > deadzone) {
-          // Swipe up (deltaY < 0) -> move forward (+Z in camera local space, which is -Z in world coords)
-          // Swipe down (deltaY > 0) -> move backward
-          const dir = deltaY < 0 ? 1 : -1;
-          
-          // Displacement speed scales with swipe speed/delta (increased scaling 10x)
-          const speedFactor = Math.min(Math.abs(deltaY) * 0.02, 1.0);
-          
-          // Calculate camera horizontal facing direction vector
-          const forward = new THREE.Vector3(0, 0, -1);
-          forward.applyQuaternion(this.camera.quaternion);
-          forward.y = 0;
-          forward.normalize();
+        const moveVec = new THREE.Vector3();
 
-          // Translate rig
+        // Get camera direction vectors in world horizontal space
+        const forward = new THREE.Vector3(0, 0, -1);
+        forward.applyQuaternion(this.camera.quaternion);
+        forward.y = 0;
+        forward.normalize();
+
+        const right = new THREE.Vector3(1, 0, 0);
+        right.applyQuaternion(this.camera.quaternion);
+        right.y = 0;
+        right.normalize();
+
+        // 1. Process vertical swipe (forward/backward)
+        if (Math.abs(deltaY) > deadzone) {
+          const dirForward = deltaY < 0 ? 1 : -1;
+          const speedFactorY = Math.min(Math.abs(deltaY) * 0.02, 1.0);
+          moveVec.addScaledVector(forward, dirForward * speedFactorY);
+        }
+
+        // 2. Process horizontal swipe (strafe left/right)
+        if (Math.abs(deltaX) > deadzone) {
+          const dirRight = deltaX < 0 ? -1 : 1; // swipe left moves left (-1), swipe right moves right (+1)
+          const speedFactorX = Math.min(Math.abs(deltaX) * 0.02, 1.0);
+          moveVec.addScaledVector(right, dirRight * speedFactorX);
+        }
+
+        // Apply movement if any vector component is present
+        if (moveVec.lengthSq() > 0) {
+          moveVec.normalize();
+          
+          // Speed scales relative to the largest touch displacement
+          const maxDelta = Math.max(Math.abs(deltaX), Math.abs(deltaY));
+          const totalSpeed = Math.min(maxDelta * 0.02 * this.data.speed, 0.25);
+          
+          // Translate rig position
           const pos = this.rig.object3D.position;
-          pos.addScaledVector(forward, dir * speedFactor * this.data.speed);
+          pos.addScaledVector(moveVec, totalSpeed);
 
           // Force bounds check immediately
           const boundary = this.rig.components['room-boundary'];
@@ -458,7 +484,8 @@
           }
         }
 
-        // Adjust tracking start position for next frame delta calculation
+        // Reset tracking start coordinates for next delta calculation
+        this.touchStartX = currentX;
         this.touchStartY = currentY;
         
         // Prevent default browser page scrolling while swiping inside the gallery
