@@ -931,6 +931,7 @@
       const bloomAnchorsList = [];
       let lastZWest = -8;
       let lastZEast = -8;
+      let bloomLastGap = 4.8; // default: 1.5 * 4.0 * 0.8
       const bloomSidePhotos = bloomPaths.slice(0, 14);
       const bloomNorthPhotos = bloomPaths.slice(14);
 
@@ -938,6 +939,7 @@
         const ar = arMap[src] || 1.0;
         const w = 4.0 * ar;
         const gap = 1.5 * w; // edge-to-edge gap is exactly 1.5x width
+        bloomLastGap = gap;
         
         if (index % 2 === 0) {
           const z = lastZWest - w / 2;
@@ -950,7 +952,8 @@
         }
       });
       
-      const bloomEnd = Math.min(lastZWest, lastZEast) + gap - 2.0;
+      // bloomLastGap is now accessible — shorten the hall by pulling end wall closer
+      const bloomEnd = Math.min(lastZWest, lastZEast) + bloomLastGap - 2.0;
 
       // Add the two North wall paintings (offset 5cm South of the wall, facing South rot 0 0 0)
       if (bloomNorthPhotos.length > 0) {
