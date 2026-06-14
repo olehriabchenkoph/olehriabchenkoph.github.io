@@ -3,10 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, shrink-to-fit=no">
-  <title>AURA // 3D Virtual Photography Gallery</title>
+  <title>Oleh Riabchenko // 3D Virtual Gallery</title>
   <!-- SEO Meta Tags -->
-  <meta name="description" content="Immerse yourself in AURA, a minimalist 3D virtual photography gallery. Move physically on mobile using gyroscope controls, or explore using keyboard and mouse on desktop.">
-  <meta name="keywords" content="WebXR, A-Frame, 3D Gallery, Virtual Reality, Photography, Gyroscope Controls, Magic Window">
+  <meta name="description" content="Explore the virtual photography exhibition of Oleh Riabchenko, showcasing series Bloom and Dopamine in a boundless 3D white space.">
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -40,7 +39,7 @@
       color: var(--text-main);
     }
 
-    /* 2D Overlay UI - Entry Screen (Light Mode) */
+    /* 2D Overlay UI - Entry Screen */
     #overlay-ui {
       position: fixed;
       top: 0;
@@ -82,18 +81,19 @@
     }
 
     .brand-title {
-      font-size: 3rem;
+      font-size: 2.2rem;
       font-weight: 200;
-      letter-spacing: 0.5em;
+      letter-spacing: 0.3em;
       margin-bottom: 8px;
       color: var(--text-main);
-      text-indent: 0.5em;
+      text-indent: 0.3em;
+      text-transform: uppercase;
     }
 
     .brand-subtitle {
       font-size: 0.9rem;
       text-transform: uppercase;
-      letter-spacing: 0.3em;
+      letter-spacing: 0.2em;
       color: var(--accent-neon);
       margin-bottom: 32px;
       font-weight: 600;
@@ -146,7 +146,7 @@
       border-color: var(--accent-neon);
     }
 
-    /* 2D Control Bar Overlay (HUD - Light Mode) */
+    /* 2D Control Bar Overlay (HUD) */
     #hud-overlay {
       position: fixed;
       bottom: 24px;
@@ -180,7 +180,7 @@
       font-weight: 600;
     }
 
-    /* Interactive Art Detail Modal (Light Mode) */
+    /* Interactive Art Detail Modal */
     #art-modal {
       position: fixed;
       top: 0;
@@ -208,12 +208,12 @@
       background: linear-gradient(180deg, #ffffff 0%, #f4f4f8 100%);
       border: 1px solid var(--border-glass);
       border-radius: 20px;
-      width: 90%;
+      width: 95%;
       max-width: 850px;
       max-height: 90vh;
       overflow-y: auto;
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: 1.2fr 1fr;
       box-shadow: 0 20px 50px rgba(0,0,0,0.1);
       transform: scale(0.95);
       transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
@@ -229,13 +229,13 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 30px;
+      padding: 20px;
       border-right: 1px solid var(--border-glass);
     }
 
     .modal-img-container img {
       max-width: 100%;
-      max-height: 50vh;
+      max-height: 60vh;
       object-fit: contain;
       border-radius: 4px;
       box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
@@ -253,7 +253,7 @@
     }
 
     .modal-title {
-      font-size: 2rem;
+      font-size: 1.8rem;
       font-weight: 800;
       letter-spacing: 0.05em;
       margin-bottom: 4px;
@@ -262,7 +262,7 @@
     }
 
     .modal-meta {
-      font-size: 0.8rem;
+      font-size: 0.85rem;
       text-transform: uppercase;
       letter-spacing: 0.15em;
       color: var(--accent-neon);
@@ -271,10 +271,11 @@
     }
 
     .modal-desc {
-      font-size: 0.9rem;
+      font-size: 0.95rem;
       line-height: 1.7;
       color: var(--text-muted);
       margin-bottom: 24px;
+      white-space: pre-wrap;
     }
 
     .modal-technical {
@@ -330,7 +331,7 @@
         padding: 24px;
       }
       .modal-title {
-        font-size: 1.5rem;
+        font-size: 1.4rem;
       }
     }
   </style>
@@ -338,7 +339,6 @@
   <script>
     // ----------------------------------------------------
     // Custom A-Frame Component: Relative First Person Controls (Video Game style)
-    // Reads directly from Three.js matrix to remain fully functional when device orientation is active on mobile.
     // ----------------------------------------------------
     AFRAME.registerComponent('fps-wasd-controls', {
       schema: {
@@ -365,11 +365,10 @@
         
         const cameraObject = cameraEl.object3D;
 
-        // Extract direction vectors directly from cameraObject's current rotation matrix
-        // This makes sure it functions correctly regardless of mouse look or physical mobile gyro updates.
+        // Extract camera directional vectors relative to gravity plane
         const forward = new THREE.Vector3(0, 0, -1);
         forward.applyQuaternion(cameraObject.quaternion);
-        forward.y = 0; // lock to horizontal movement
+        forward.y = 0;
         forward.normalize();
 
         const right = new THREE.Vector3(1, 0, 0);
@@ -377,7 +376,6 @@
         right.y = 0;
         right.normalize();
 
-        // Calculate layout movement vector
         const direction = new THREE.Vector3();
         if (z === -1) direction.addScaledVector(forward, 1);
         if (z === 1) direction.addScaledVector(forward, -1);
@@ -387,24 +385,20 @@
         if (direction.lengthSq() === 0) return;
         direction.normalize();
 
-        // Framerate-independent step scaling
         const dt = Math.min(timeDelta / 1000, 0.1);
         const velocity = this.data.speed * 60 * dt;
 
-        // Translate the camera-rig
         const pos = this.el.object3D.position;
         pos.addScaledVector(direction, velocity);
       }
     });
 
     // ----------------------------------------------------
-    // Custom A-Frame Component: Swipe Movement Controls
-    // Listens for vertical swipe/drag events on mobile screens to translate the camera rig
-    // forward or backward relative to the camera heading.
+    // Custom A-Frame Component: Swipe Movement Controls (Mobile)
     // ----------------------------------------------------
     AFRAME.registerComponent('swipe-movement-controls', {
       schema: {
-        speed: {type: 'number', default: 0.8} // displacement speed factor
+        speed: {type: 'number', default: 0.8} // sensitivity scaling
       },
       init: function () {
         this.rig = this.el;
@@ -434,13 +428,12 @@
         const currentX = e.touches[0].clientX;
         const currentY = e.touches[0].clientY;
         
-        const deltaX = currentX - this.touchStartX; // negative = swipe left, positive = swipe right
-        const deltaY = currentY - this.touchStartY; // negative = swipe up, positive = swipe down
+        const deltaX = currentX - this.touchStartX;
+        const deltaY = currentY - this.touchStartY;
 
-        const deadzone = 8; // pixel threshold
+        const deadzone = 8;
         const moveVec = new THREE.Vector3();
 
-        // Get camera direction vectors in world horizontal space
         const forward = new THREE.Vector3(0, 0, -1);
         forward.applyQuaternion(this.camera.quaternion);
         forward.y = 0;
@@ -460,35 +453,28 @@
 
         // 2. Process horizontal swipe (strafe left/right)
         if (Math.abs(deltaX) > deadzone) {
-          const dirRight = deltaX < 0 ? -1 : 1; // swipe left moves left (-1), swipe right moves right (+1)
+          const dirRight = deltaX < 0 ? -1 : 1;
           const speedFactorX = Math.min(Math.abs(deltaX) * 0.02, 1.0);
           moveVec.addScaledVector(right, dirRight * speedFactorX);
         }
 
-        // Apply movement if any vector component is present
         if (moveVec.lengthSq() > 0) {
           moveVec.normalize();
-          
-          // Speed scales relative to the largest touch displacement
           const maxDelta = Math.max(Math.abs(deltaX), Math.abs(deltaY));
           const totalSpeed = Math.min(maxDelta * 0.02 * this.data.speed, 0.25);
           
-          // Translate rig position
           const pos = this.rig.object3D.position;
           pos.addScaledVector(moveVec, totalSpeed);
 
-          // Force bounds check immediately
           const boundary = this.rig.components['room-boundary'];
           if (boundary) {
             boundary.tick();
           }
         }
 
-        // Reset tracking start coordinates for next delta calculation
         this.touchStartX = currentX;
         this.touchStartY = currentY;
         
-        // Prevent default browser page scrolling while swiping inside the gallery
         e.preventDefault();
       },
       onTouchEnd: function () {
@@ -502,37 +488,32 @@
     });
 
     // ----------------------------------------------------
-    // Custom A-Frame Component: Teleport Handler
+    // Custom A-Frame Component: Teleport Handler (Desktop Click-to-teleport)
     // ----------------------------------------------------
     AFRAME.registerComponent('teleport-handler', {
       schema: {
-        speed: {type: 'number', default: 0.12}, // Interpolation speed for smooth dash
+        speed: {type: 'number', default: 0.12},
         floorId: {type: 'string', default: '#floor'},
         indicatorId: {type: 'string', default: '#teleport-indicator'}
       },
       init: function () {
         this.targetPos = new THREE.Vector3();
         this.isMoving = false;
-        this.rig = this.el; // Rig entity
+        this.rig = this.el;
         this.indicator = document.querySelector(this.data.indicatorId);
         this.floor = document.querySelector(this.data.floorId);
         
-        // Listen to clicks on the floor
         this.floor.addEventListener('click', (evt) => {
           // Disable teleportation on mobile/tablet (only allow swipes)
           if (AFRAME.utils.device.isMobile()) return;
-          const point = evt.detail.intersection.point;
           
-          // Maintain the rig's native Y height constant
+          const point = evt.detail.intersection.point;
           this.targetPos.set(point.x, this.rig.object3D.position.y, point.z);
           this.isMoving = true;
 
-          // Position & animate the indicator ring
           if (this.indicator) {
             this.indicator.setAttribute('position', {x: point.x, y: 0.02, z: point.z});
             this.indicator.setAttribute('visible', 'true');
-            
-            // Trigger visual pulse animation via setting attributes
             this.indicator.setAttribute('animation__scale', {
               property: 'scale',
               from: '0.1 0.1 0.1',
@@ -554,10 +535,8 @@
         if (!this.isMoving) return;
 
         const currentPos = this.rig.object3D.position;
-        // Linearly interpolate position for a smooth dashboard movement
         currentPos.lerp(this.targetPos, this.data.speed);
 
-        // Snap to target if very close
         if (currentPos.distanceTo(this.targetPos) < 0.05) {
           currentPos.copy(this.targetPos);
           this.isMoving = false;
@@ -569,32 +548,107 @@
     });
 
     // ----------------------------------------------------
-    // Custom A-Frame Component: Room Collision boundaries
+    // Custom A-Frame Component: Multi-Hall Room Boundaries
     // ----------------------------------------------------
     AFRAME.registerComponent('room-boundary', {
-      schema: {
-        minX: {type: 'number', default: -7.2},
-        maxX: {type: 'number', default: 7.2},
-        minZ: {type: 'number', default: -7.2},
-        maxZ: {type: 'number', default: 7.2}
+      init: function() {
+        this.lastX = this.el.object3D.position.x;
+        this.lastZ = this.el.object3D.position.z;
       },
       tick: function () {
         const pos = this.el.object3D.position;
+        const x = pos.x;
+        const z = pos.z;
         
-        // Clamp camera rig coordinates
-        if (pos.x < this.data.minX) pos.x = this.data.minX;
-        if (pos.x > this.data.maxX) pos.x = this.data.maxX;
-        if (pos.z < this.data.minZ) pos.z = this.data.minZ;
-        if (pos.z > this.data.maxZ) pos.z = this.data.maxZ;
+        let minX = -17.5;
+        let maxX = 67.5;
+        let minZ = -4.5;
+        let maxZ = 4.5;
+        
+        // Foyer & Transition zones
+        if (x >= -6.5 && x <= 6.5) {
+          // In the central foyer corridor
+          minZ = -1.8;
+          maxZ = 1.8;
+        } else if (x < -6.5) {
+          // In Bloom Hall (X is -18 to -6)
+          minX = -17.5;
+          maxX = -6.5;
+          minZ = -5.5;
+          maxZ = 5.5;
+          
+          // Allow exit into foyer if near Z = 0
+          if (z >= -1.8 && z <= 1.8) {
+            maxX = 6.5; // let it cross
+          }
+        } else if (x > 6.5) {
+          // In Dopamine Hall (X is 6 to 68)
+          minX = 6.5;
+          maxX = 67.5;
+          minZ = -4.5;
+          maxZ = 4.5;
+          
+          // Allow exit into foyer if near Z = 0
+          if (z >= -1.8 && z <= 1.8) {
+            minX = -6.5; // let it cross
+          }
+        }
+        
+        // Clamp position to boundary outer bounds
+        if (pos.x < minX) pos.x = minX;
+        if (pos.x > maxX) pos.x = maxX;
+        if (pos.z < minZ) pos.z = minZ;
+        if (pos.z > maxZ) pos.z = maxZ;
 
-        // If currently teleporting, clamp targetPos to keep navigation aligned
-        const teleporter = this.el.components['teleport-handler'];
-        if (teleporter && teleporter.isMoving) {
-          const tPos = teleporter.targetPos;
-          if (tPos.x < this.data.minX) tPos.x = this.data.minX;
-          if (tPos.x > this.data.maxX) tPos.x = this.data.maxX;
-          if (tPos.z < this.data.minZ) tPos.z = this.data.minZ;
-          if (tPos.z > this.data.maxZ) tPos.z = this.data.maxZ;
+        // Prevent walking through Room 2's internal partition walls (X = 20)
+        if (pos.x >= 19.5 && pos.x <= 20.5) {
+          if ((pos.z >= -3.7 && pos.z <= -1.3) || (pos.z >= 1.3 && pos.z <= 3.7)) {
+            // Push player back horizontally
+            pos.x = this.lastX;
+          }
+        }
+        
+        this.lastX = pos.x;
+        this.lastZ = pos.z;
+      }
+    });
+
+    // ----------------------------------------------------
+    // Custom A-Frame Component: Distance-based Lazy Texture Loader
+    // Unloads textures from GPU memory when they are out of range to prevent phone OOM crashes.
+    // ----------------------------------------------------
+    AFRAME.registerComponent('dist-loader', {
+      schema: {
+        src: {type: 'string'},
+        distance: {type: 'number', default: 16}
+      },
+      init: function () {
+        this.rig = document.querySelector('#camera-rig');
+        this.loaded = false;
+        this.el.setAttribute('color', '#ffffff');
+        this.el.setAttribute('opacity', '0.05');
+      },
+      tick: function () {
+        const rigPos = this.rig.object3D.position;
+        const myPos = this.el.object3D.position;
+        
+        const dx = rigPos.x - myPos.x;
+        const dz = rigPos.z - myPos.z;
+        const distSq = dx * dx + dz * dz;
+        const loadDistSq = this.data.distance * this.data.distance;
+        
+        if (distSq < loadDistSq) {
+          if (!this.loaded) {
+            this.el.setAttribute('src', this.data.src);
+            this.el.setAttribute('opacity', '1.0');
+            this.loaded = true;
+          }
+        } else {
+          if (this.loaded) {
+            this.el.removeAttribute('src');
+            this.el.setAttribute('opacity', '0.05');
+            this.loaded = false;
+          }
         }
       }
     });
@@ -619,22 +673,22 @@
   <!-- 2D Overlay UI Entry Screen -->
   <div id="overlay-ui">
     <div class="glass-panel">
-      <h1 class="brand-title">AURA</h1>
-      <div class="brand-subtitle">Virtual 3D Gallery</div>
+      <h1 class="brand-title">Oleh Riabchenko</h1>
+      <div class="brand-subtitle">Photography Exhibition</div>
       
       <div class="instructions">
         <h3>Exhibition Controls</h3>
-        <p><strong>Mobile:</strong> Rotate your phone to look around. Tap the floor to teleport to that spot.</p>
-        <p><strong>Desktop:</strong> Click and drag to look around. Use <strong>W A S D</strong> or Arrow keys to walk, or click floor to teleport.</p>
+        <p><strong>Mobile:</strong> Rotate your phone to look around. Swipe <strong>UP / DOWN</strong> to walk, and <strong>LEFT / RIGHT</strong> to step sideways.</p>
+        <p><strong>Desktop:</strong> Click & drag to look around. Use <strong>W A S D</strong> or Arrow keys to walk. Click floor to teleport.</p>
       </div>
 
-      <button id="btn-enter" class="btn-enter" onclick="requestAccess()">Enter Gallery</button>
+      <button id="btn-enter" class="btn-enter" onclick="requestAccess()">Enter Exhibition</button>
     </div>
   </div>
 
   <!-- 2D HUD Control Bar -->
   <div id="hud-overlay">
-    <div class="hud-text">Drag mouse to look • Tap Floor to Move • Click Artworks to Inspect</div>
+    <div class="hud-text">Bloom Hall (Left) • Dopamine Hall (Right) • Swipe screen to walk • Tap picture to inspect</div>
   </div>
 
   <!-- Interactive 2D Metadata Modal -->
@@ -647,10 +701,9 @@
         <div class="modal-header">
           <h2 id="modal-title" class="modal-title">Artwork Title</h2>
           <div id="modal-artist" class="modal-meta">By Oleh Riabchenko, 2026</div>
-          <p id="modal-desc" class="modal-desc">This is a description of the photography artwork.</p>
+          <p id="modal-desc" class="modal-desc">Description of the artwork.</p>
         </div>
         <div class="modal-technical">
-          <div>Camera: <span id="modal-cam">Leica SL2</span></div>
           <div>Year: <span id="modal-year">2026</span></div>
         </div>
         <button class="btn-close" onclick="closeModal(null)">Return to Gallery</button>
@@ -658,132 +711,339 @@
     </div>
   </div>
 
-  <!-- 3D Scene (White Minimalist Space, WebXR local-floor reference enabled) -->
-  <a-scene webxr="referenceSpaceType: local-floor; requiredFeatures: local-floor;" loading-screen="dotsColor: #5c5c93; backgroundColor: #ffffff" renderer="antialias: true; colorManagement: true;">
+  <!-- 3D Scene (White Minimalist Space, WebXR Disabled by Default) -->
+  <a-scene loading-screen="dotsColor: #5c5c93; backgroundColor: #ffffff" renderer="antialias: true; colorManagement: true;">
     
-    <!-- Asset Preloader -->
-    <a-assets>
-      <!-- Photography Images -->
-      <img id="img-snow" src="assets/giedi_snow.png" crossorigin="anonymous">
-      <img id="img-streets" src="assets/cyber_streets.png" crossorigin="anonymous">
-      <img id="img-dykhaite" src="assets/dykhaite.png" crossorigin="anonymous">
-      <img id="img-brutalist" src="assets/brutalist_echo.png" crossorigin="anonymous">
-    </a-assets>
-
     <!-- Camera Rig -->
-    <a-entity id="camera-rig" position="0 0 0" fps-wasd-controls="speed: 0.07; camera: #camera" swipe-movement-controls="speed: 0.8" teleport-handler="floorId: #floor; indicatorId: #teleport-indicator" room-boundary="minX: -7.2; maxX: 7.2; minZ: -7.2; maxZ: 7.2">
+    <a-entity id="camera-rig" position="0 0 0" fps-wasd-controls="speed: 0.07; camera: #camera" swipe-movement-controls="speed: 0.8" teleport-handler="floorId: #floor; indicatorId: #teleport-indicator" room-boundary>
       
       <!-- Camera Entity -->
       <a-entity id="camera" camera="near: 0.1; far: 100" position="0 1.6 0" look-controls="pointerLockEnabled: false; touchEnabled: false;">
-        
         <!-- Interactive Mouse Raycaster for Tap/Click mapping -->
         <a-entity raycaster="objects: .teleportable, .interactable; far: 25" cursor="rayOrigin: mouse"></a-entity>
-        
       </a-entity>
       
     </a-entity>
 
-    <!-- Teleport indicator marker (glowing virtual projection on floor) -->
+    <!-- Teleport indicator marker -->
     <a-entity id="teleport-indicator" visible="false" position="0 0.02 0">
       <a-ring rotation="-90 0 0" radius-inner="0.25" radius-outer="0.3" material="color: #5c5c93; shader: flat; transparent: true; opacity: 0.8"></a-ring>
       <a-ring rotation="-90 0 0" radius-inner="0.05" radius-outer="0.1" material="color: #5c5c93; shader: flat; transparent: true; opacity: 0.9"></a-ring>
     </a-entity>
 
     <!-- Floor (Solid Pure White) -->
-    <a-plane id="floor" class="teleportable" rotation="-90 0 0" width="16" height="16" material="color: #ffffff; roughness: 0.95; metalness: 0.05" cursor-feedback></a-plane>
+    <a-plane id="floor" class="teleportable" rotation="-90 0 0" width="150" height="150" material="color: #ffffff; roughness: 0.95; metalness: 0.05" cursor-feedback></a-plane>
 
     <!-- Ceiling (Clean white) -->
-    <a-plane rotation="90 0 0" position="0 5 0" width="16" height="16" material="color: #ffffff; roughness: 1; metalness: 0"></a-plane>
+    <a-plane rotation="90 0 0" position="0 5 0" width="150" height="150" material="color: #ffffff; roughness: 1; metalness: 0"></a-plane>
 
     <!-- ----------------------------------------------------
-         GALLERY WALLS (Solid Pure White)
+         EXHIBITION WALLS (Solid Pure White)
          ---------------------------------------------------- -->
-    <a-box id="wall-north" position="0 2.5 -8" width="16" height="5" depth="0.2" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
-    <a-box id="wall-south" position="0 2.5 8" width="16" height="5" depth="0.2" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
-    <a-box id="wall-east" position="8 2.5 0" rotation="0 90 0" width="16" height="5" depth="0.2" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
-    <a-box id="wall-west" position="-8 2.5 0" rotation="0 90 0" width="16" height="5" depth="0.2" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
+    
+    <!-- Foyer Entrance Hall (X: -6 to 6, Z: -2 to 2) -->
+    <a-box position="0 2.5 -2.05" width="12.2" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
+    <a-box position="0 2.5 2.05" width="12.2" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
+
+    <!-- Hall 1: Bloom / Квітнення (X: -18 to -6, Z: -6 to 6) -->
+    <a-box id="bloom-wall-north" position="-12 2.5 -6" width="12" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
+    <a-box id="bloom-wall-south" position="-12 2.5 6" width="12" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
+    <a-box id="bloom-wall-west" position="-18 2.5 0" rotation="0 90 0" width="12" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
+    <a-box id="bloom-wall-east-north" position="-6 2.5 -4" rotation="0 90 0" width="4" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
+    <a-box id="bloom-wall-east-south" position="-6 2.5 4" rotation="0 90 0" width="4" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
+
+    <!-- Hall 2: Dopamine / Дофамін (X: 6 to 68, Z: -5 to 5) -->
+    <a-box id="dopamine-wall-north" position="37 2.5 -5" width="62" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
+    <a-box id="dopamine-wall-south" position="37 2.5 5" width="62" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
+    <a-box id="dopamine-wall-east" position="68 2.5 0" rotation="0 90 0" width="10" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
+    <a-box id="dopamine-wall-west-north" position="6 2.5 -3.5" rotation="0 90 0" width="3" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
+    <a-box id="dopamine-wall-west-south" position="6 2.5 3.5" rotation="0 90 0" width="3" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
+
+    <!-- Dopamine Internal Room Partitions -->
+    <a-box position="14 2.5 -3.5" rotation="0 90 0" width="3" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
+    <a-box position="14 2.5 3.5" rotation="0 90 0" width="3" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
+    
+    <a-box position="26 2.5 -3.5" rotation="0 90 0" width="3" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
+    <a-box position="26 2.5 3.5" rotation="0 90 0" width="3" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
+
+    <a-box position="35 2.5 -3.5" rotation="0 90 0" width="3" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
+    <a-box position="35 2.5 3.5" rotation="0 90 0" width="3" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
+
+    <a-box position="44 2.5 -3.5" rotation="0 90 0" width="3" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
+    <a-box position="44 2.5 3.5" rotation="0 90 0" width="3" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
+
+    <a-box position="53 2.5 -3.5" rotation="0 90 0" width="3" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
+    <a-box position="53 2.5 3.5" rotation="0 90 0" width="3" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
+
+
+
+    <!-- Dopamine Room 2 Center Divider Walls (To hang more photos) -->
+    <a-box position="20 2.5 -2.5" rotation="0 90 0" width="3" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
+    <a-box position="20 2.5 2.5" rotation="0 90 0" width="3" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
 
     <!-- ----------------------------------------------------
-         LIGHTING RIG (Bright Gallery Spotlights & Accent Cones)
+         LIGHTING (Bright Even Ambient & Directional Lights)
          ---------------------------------------------------- -->
-    <a-entity light="type: ambient; color: #ffffff; intensity: 0.95"></a-entity>
+    <a-entity light="type: ambient; color: #ffffff; intensity: 0.9"></a-entity>
     <a-entity light="type: directional; color: #ffffff; intensity: 0.4" position="3 7 4"></a-entity>
-
-    <!-- Painting 1: GIEDI SNOW (North Wall, Center) -->
-    <a-entity light="type: spot; color: #fffbe8; intensity: 2.0; angle: 40; penumbra: 0.6; distance: 6" position="0 4.4 -6.8" rotation="-50 0 0"></a-entity>
-    <a-cylinder radius="0.08" height="0.2" material="color: #ffffff; roughness: 0.5" position="0 4.8 -6.8" rotation="-40 0 0"></a-cylinder>
-    <a-cone radius-bottom="0.9" radius-top="0.08" height="2.8" material="color: #fffbe8; shader: flat; transparent: true; opacity: 0.04" position="0 3.3 -7.15" rotation="-50 0 0" open-ended="true"></a-cone>
-
-    <!-- Painting 2: CYBER STREETS (East Wall, Center) -->
-    <a-entity light="type: spot; color: #fffbe8; intensity: 2.0; angle: 40; penumbra: 0.6; distance: 6" position="6.8 4.4 0" rotation="-50 -90 0"></a-entity>
-    <a-cylinder radius="0.08" height="0.2" material="color: #ffffff; roughness: 0.5" position="6.8 4.8 0" rotation="-40 -90 0"></a-cylinder>
-    <a-cone radius-bottom="0.9" radius-top="0.08" height="2.8" material="color: #fffbe8; shader: flat; transparent: true; opacity: 0.04" position="7.15 3.3 0" rotation="-50 -90 0" open-ended="true"></a-cone>
-
-    <!-- Painting 3: DYKHAITE (South Wall, Center) -->
-    <a-entity light="type: spot; color: #fffbe8; intensity: 2.0; angle: 40; penumbra: 0.6; distance: 6" position="0 4.4 6.8" rotation="-50 180 0"></a-entity>
-    <a-cylinder radius="0.08" height="0.2" material="color: #ffffff; roughness: 0.5" position="0 4.8 6.8" rotation="-40 180 0"></a-cylinder>
-    <a-cone radius-bottom="0.9" radius-top="0.08" height="2.8" material="color: #fffbe8; shader: flat; transparent: true; opacity: 0.04" position="0 3.3 7.15" rotation="-50 180 0" open-ended="true"></a-cone>
-
-    <!-- Painting 4: BRUTALIST ECHO (West Wall, Center) -->
-    <a-entity light="type: spot; color: #fffbe8; intensity: 2.0; angle: 40; penumbra: 0.6; distance: 6" position="-6.8 4.4 0" rotation="-50 90 0"></a-entity>
-    <a-cylinder radius="0.08" height="0.2" material="color: #ffffff; roughness: 0.5" position="-6.8 4.8 0" rotation="-40 90 0"></a-cylinder>
-    <a-cone radius-bottom="0.9" radius-top="0.08" height="2.8" material="color: #fffbe8; shader: flat; transparent: true; opacity: 0.04" position="-7.15 3.3 0" rotation="-50 90 0" open-ended="true"></a-cone>
+    <a-entity light="type: directional; color: #ffffff; intensity: 0.2" position="-5 6 -3"></a-entity>
 
 
-    <!-- ----------------------------------------------------
-         ARTWORKS: FRAME, IMAGE, NAMEPLATE
-         ---------------------------------------------------- -->
-         
-    <!-- Painting 1: GIEDI SNOW (North Wall) -->
-    <a-entity id="art-snow" position="0 2.2 -7.88">
-      <!-- Dark elegant frame for high-contrast presentation on white walls -->
-      <a-box width="3.2" height="2.2" depth="0.06" material="color: #1a1a24; metalness: 0.2; roughness: 0.6"></a-box>
-      <!-- The Photo -->
-      <a-image id="frame-snow" class="interactable" cursor-feedback src="#img-snow" width="3.0" height="2.0" position="0 0 0.035" material="roughness: 0.3" onclick="openArtwork('snow')"></a-image>
-      <!-- Dark-colored titles for high readability -->
-      <a-text value="GIEDI SNOW" align="center" width="2.8" color="#1d1d26" font="kailasa" position="0 -1.35 0.04" font-weight="bold"></a-text>
-      <a-text value="Oleh Riabchenko, 2026" align="center" width="1.8" color="#6e6e73" font="kailasa" position="0 -1.5 0.04"></a-text>
+
+    <!-- 3D Text Labels Floating at Hallways -->
+    <a-entity position="-3.5 3 0" rotation="0 90 0">
+      <a-text value="KVITNENNYA" align="center" width="6" color="#1d1d26" font="roboto" font-weight="bold"></a-text>
+    </a-entity>
+    <a-entity position="3.5 3 0" rotation="0 -90 0">
+      <a-text value="DOPAMINE" align="center" width="6" color="#1d1d26" font="roboto" font-weight="bold"></a-text>
     </a-entity>
 
-    <!-- Painting 2: CYBER STREETS (East Wall) -->
-    <a-entity id="art-streets" position="7.88 2.2 0" rotation="0 -90 0">
-      <!-- Frame -->
-      <a-box width="2.2" height="3.2" depth="0.06" material="color: #1a1a24; metalness: 0.2; roughness: 0.6"></a-box>
-      <!-- Photo -->
-      <a-image id="frame-streets" class="interactable" cursor-feedback src="#img-streets" width="2.0" height="3.0" position="0 0 0.035" material="roughness: 0.3" onclick="openArtwork('streets')"></a-image>
-      <!-- Title -->
-      <a-text value="CYBER STREETS" align="center" width="2.8" color="#1d1d26" font="kailasa" position="0 -1.85 0.04" font-weight="bold"></a-text>
-      <a-text value="Oleh Riabchenko, 2026" align="center" width="1.8" color="#6e6e73" font="kailasa" position="0 -2.0 0.04"></a-text>
-    </a-entity>
-
-    <!-- Painting 3: DYKHAITE (South Wall) -->
-    <a-entity id="art-dykhaite" position="0 2.2 7.88" rotation="0 180 0">
-      <!-- Frame -->
-      <a-box width="3.2" height="2.2" depth="0.06" material="color: #1a1a24; metalness: 0.2; roughness: 0.6"></a-box>
-      <!-- Photo -->
-      <a-image id="frame-dykhaite" class="interactable" cursor-feedback src="#img-dykhaite" width="3.0" height="2.0" position="0 0 0.035" material="roughness: 0.3" onclick="openArtwork('dykhaite')"></a-image>
-      <!-- Title -->
-      <a-text value="DYKHAITE" align="center" width="2.8" color="#1d1d26" font="kailasa" position="0 -1.35 0.04" font-weight="bold"></a-text>
-      <a-text value="Oleh Riabchenko, 2026" align="center" width="1.8" color="#6e6e73" font="kailasa" position="0 -1.5 0.04"></a-text>
-    </a-entity>
-
-    <!-- Painting 4: BRUTALIST ECHO (West Wall) -->
-    <a-entity id="art-brutalist" position="-7.88 2.2 0" rotation="0 90 0">
-      <!-- Frame -->
-      <a-box width="2.2" height="3.2" depth="0.06" material="color: #1a1a24; metalness: 0.2; roughness: 0.6"></a-box>
-      <!-- Photo -->
-      <a-image id="frame-brutalist" class="interactable" cursor-feedback src="#img-brutalist" width="2.0" height="3.0" position="0 0 0.035" material="roughness: 0.3" onclick="openArtwork('brutalist')"></a-image>
-      <!-- Title -->
-      <a-text value="BRUTALIST ECHO" align="center" width="2.8" color="#1d1d26" font="kailasa" position="0 -1.85 0.04" font-weight="bold"></a-text>
-      <a-text value="Oleh Riabchenko, 2026" align="center" width="1.8" color="#6e6e73" font="kailasa" position="0 -2.0 0.04"></a-text>
-    </a-entity>
+    <!-- Dynamic Art Container -->
+    <a-entity id="paintings-container"></a-entity>
 
   </a-scene>
 
   <!-- ----------------------------------------------------
-       JAVASCRIPT APP LOGIC
+       EXHIBITION METADATA DATABASE & DYNAMIC GENERATOR
        ---------------------------------------------------- -->
   <script>
+    // Exact list of files discovered recursively in the user's Фото folder
+    const GALLERY_PHOTOS = {
+      "bloom": [
+        "1.jpg", "11.jpg", "12.jpg", "13.jpg", "14.jpg", "15.jpg", "16.jpg", "18.jpg",
+        "2.jpg", "3.jpg", "4.jpg", "5.jpg", "6.jpg", "7.jpg", "8.jpg", "Рябченко3.jpg"
+      ],
+      "dopamine": {
+        "1": ["DSC_0829-1.jpg", "DSC_0830-1.jpg", "DSC_0832-1.jpg", "DSC_0833-1.jpg", "DSC_0834-1.jpg", "DSC_0835-1.jpg"],
+        "2": [
+          "109.jpg", "111.jpg", "112.jpg", "116.jpg", "119.jpg", "121.jpg", "123.jpg", "124.jpg",
+          "125.jpg", "126.jpg", "131.jpg", "132.jpg", "133.jpg", "134.jpg", "135.jpg", "136.jpg",
+          "137.jpg", "138.jpg", "79.jpg", "84.jpg", "89.jpg", "90.jpg", "91.jpg", "93.jpg"
+        ],
+        "3": ["14.jpg", "18.jpg", "27.jpg", "29.jpg", "49.jpg", "52.jpg", "58.jpg", "59.jpg", "60.jpg", "63.jpg", "64.jpg"],
+        "4": ["122.jpg", "53.jpg", "67.jpg", "68.jpg", "72.jpg", "73.jpg", "75.jpg", "77.jpg", "78.jpg", "81.jpg", "83.jpg", "98.jpg"],
+        "5": ["108.jpg", "110.jpg", "127.jpg", "128.jpg", "129.jpg", "88.jpg", "92.jpg", "94.jpg", "95.jpg", "96.jpg"],
+        "6": ["100.jpg", "101.jpg", "103.jpg", "104.jpg", "113.jpg", "114.jpg", "115.jpg", "117.jpg", "118.jpg", "130.jpg", "97.jpg", "99.jpg"]
+      }
+    };
+
+    // Anchors for Bloom Hall (X: -12, Z: 0). Total 16 anchors.
+    const bloomAnchors = [
+      // West Wall (x = -17.9)
+      {x: -17.9, y: 2.2, z: -4.5, rot: "0 90 0"},
+      {x: -17.9, y: 2.2, z: -1.5, rot: "0 90 0"},
+      {x: -17.9, y: 2.2, z: 1.5, rot: "0 90 0"},
+      {x: -17.9, y: 2.2, z: 4.5, rot: "0 90 0"},
+      // North Wall (z = -5.9)
+      {x: -15.0, y: 2.2, z: -5.9, rot: "0 0 0"},
+      {x: -13.0, y: 2.2, z: -5.9, rot: "0 0 0"},
+      {x: -11.0, y: 2.2, z: -5.9, rot: "0 0 0"},
+      {x: -9.0,  y: 2.2, z: -5.9, rot: "0 0 0"},
+      // South Wall (z = 5.9)
+      {x: -15.0, y: 2.2, z: 5.9, rot: "0 180 0"},
+      {x: -13.0, y: 2.2, z: 5.9, rot: "0 180 0"},
+      {x: -11.0, y: 2.2, z: 5.9, rot: "0 180 0"},
+      {x: -9.0,  y: 2.2, z: 5.9, rot: "0 180 0"},
+      // East Wall (x = -6.1)
+      {x: -6.1, y: 2.2, z: -4.5, rot: "0 -90 0"},
+      {x: -6.1, y: 2.2, z: -3.0, rot: "0 -90 0"},
+      {x: -6.1, y: 2.2, z: 3.0, rot: "0 -90 0"},
+      {x: -6.1, y: 2.2, z: 4.5, rot: "0 -90 0"}
+    ];
+
+    // Anchors for Dopamine Hall Rooms 1-6
+    const dopamineAnchors = {
+      // Group 1 (X: 6 to 14, center 10). 6 anchors.
+      "1": [
+        {x: 8.5, y: 2.2, z: -4.9, rot: "0 0 0"},
+        {x: 11.5, y: 2.2, z: -4.9, rot: "0 0 0"},
+        {x: 8.5, y: 2.2, z: 4.9, rot: "0 180 0"},
+        {x: 11.5, y: 2.2, z: 4.9, rot: "0 180 0"},
+        {x: 6.1, y: 2.2, z: -3.5, rot: "0 90 0"},
+        {x: 6.1, y: 2.2, z: 3.5, rot: "0 90 0"}
+      ],
+      // Group 2 (X: 14 to 26, center 20). 24 anchors.
+      "2": [
+        // North Wall
+        {x: 15.5, y: 2.2, z: -4.9, rot: "0 0 0"},
+        {x: 17.5, y: 2.2, z: -4.9, rot: "0 0 0"},
+        {x: 19.5, y: 2.2, z: -4.9, rot: "0 0 0"},
+        {x: 21.5, y: 2.2, z: -4.9, rot: "0 0 0"},
+        {x: 23.5, y: 2.2, z: -4.9, rot: "0 0 0"},
+        {x: 25.5, y: 2.2, z: -4.9, rot: "0 0 0"},
+        // South Wall
+        {x: 15.5, y: 2.2, z: 4.9, rot: "0 180 0"},
+        {x: 17.5, y: 2.2, z: 4.9, rot: "0 180 0"},
+        {x: 19.5, y: 2.2, z: 4.9, rot: "0 180 0"},
+        {x: 21.5, y: 2.2, z: 4.9, rot: "0 180 0"},
+        {x: 23.5, y: 2.2, z: 4.9, rot: "0 180 0"},
+        {x: 25.5, y: 2.2, z: 4.9, rot: "0 180 0"},
+        // Outer West/East Walls
+        {x: 14.1, y: 2.2, z: -3.5, rot: "0 90 0"},
+        {x: 14.1, y: 2.2, z: 3.5, rot: "0 90 0"},
+        {x: 25.9, y: 2.2, z: -3.5, rot: "0 -90 0"},
+        {x: 25.9, y: 2.2, z: 3.5, rot: "0 -90 0"},
+        // Center Divider (X=20, North Z=-4 to -1)
+        {x: 19.9, y: 2.2, z: -3.2, rot: "0 90 0"},
+        {x: 19.9, y: 2.2, z: -1.8, rot: "0 90 0"},
+        {x: 20.1, y: 2.2, z: -3.2, rot: "0 -90 0"},
+        {x: 20.1, y: 2.2, z: -1.8, rot: "0 -90 0"},
+        // Center Divider (X=20, South Z=1 to 4)
+        {x: 19.9, y: 2.2, z: 1.8, rot: "0 90 0"},
+        {x: 19.9, y: 2.2, z: 3.2, rot: "0 90 0"},
+        {x: 20.1, y: 2.2, z: 1.8, rot: "0 -90 0"},
+        {x: 20.1, y: 2.2, z: 3.2, rot: "0 -90 0"}
+      ],
+      // Group 3 (X: 26 to 35, center 30.5). 11 anchors.
+      "3": [
+        {x: 28.5, y: 2.2, z: -4.9, rot: "0 0 0"},
+        {x: 31.0, y: 2.2, z: -4.9, rot: "0 0 0"},
+        {x: 33.5, y: 2.2, z: -4.9, rot: "0 0 0"},
+        {x: 28.5, y: 2.2, z: 4.9, rot: "0 180 0"},
+        {x: 31.0, y: 2.2, z: 4.9, rot: "0 180 0"},
+        {x: 33.5, y: 2.2, z: 4.9, rot: "0 180 0"},
+        {x: 26.1, y: 2.2, z: -3.5, rot: "0 90 0"},
+        {x: 26.1, y: 2.2, z: 3.5, rot: "0 90 0"},
+        {x: 34.9, y: 2.2, z: -3.5, rot: "0 -90 0"},
+        {x: 34.9, y: 2.2, z: 3.5, rot: "0 -90 0"},
+        {x: 34.9, y: 2.2, z: -2.0, rot: "0 -90 0"} // asymmetric offset anchor to fit 11th image
+      ],
+      // Group 4 (X: 35 to 44, center 39.5). 12 anchors.
+      "4": [
+        {x: 37.0, y: 2.2, z: -4.9, rot: "0 0 0"},
+        {x: 39.5, y: 2.2, z: -4.9, rot: "0 0 0"},
+        {x: 42.0, y: 2.2, z: -4.9, rot: "0 0 0"},
+        {x: 37.0, y: 2.2, z: 4.9, rot: "0 180 0"},
+        {x: 39.5, y: 2.2, z: 4.9, rot: "0 180 0"},
+        {x: 42.0, y: 2.2, z: 4.9, rot: "0 180 0"},
+        {x: 35.1, y: 2.2, z: -3.5, rot: "0 90 0"},
+        {x: 35.1, y: 2.2, z: 3.5, rot: "0 90 0"},
+        {x: 35.1, y: 2.2, z: -2.0, rot: "0 90 0"},
+        {x: 43.9, y: 2.2, z: -3.5, rot: "0 -90 0"},
+        {x: 43.9, y: 2.2, z: 3.5, rot: "0 -90 0"},
+        {x: 43.9, y: 2.2, z: -2.0, rot: "0 -90 0"}
+      ],
+      // Group 5 (X: 44 to 53, center 48.5). 10 anchors.
+      "5": [
+        {x: 46.0, y: 2.2, z: -4.9, rot: "0 0 0"},
+        {x: 48.5, y: 2.2, z: -4.9, rot: "0 0 0"},
+        {x: 51.0, y: 2.2, z: -4.9, rot: "0 0 0"},
+        {x: 46.0, y: 2.2, z: 4.9, rot: "0 180 0"},
+        {x: 48.5, y: 2.2, z: 4.9, rot: "0 180 0"},
+        {x: 51.0, y: 2.2, z: 4.9, rot: "0 180 0"},
+        {x: 44.1, y: 2.2, z: -3.5, rot: "0 90 0"},
+        {x: 44.1, y: 2.2, z: 3.5, rot: "0 90 0"},
+        {x: 52.9, y: 2.2, z: -3.5, rot: "0 -90 0"},
+        {x: 52.9, y: 2.2, z: 3.5, rot: "0 -90 0"}
+      ],
+      // Group 6 (X: 53 to 68, center 60.5). 12 anchors.
+      "6": [
+        {x: 55.5, y: 2.2, z: -4.9, rot: "0 0 0"},
+        {x: 59.0, y: 2.2, z: -4.9, rot: "0 0 0"},
+        {x: 62.5, y: 2.2, z: -4.9, rot: "0 0 0"},
+        {x: 55.5, y: 2.2, z: 4.9, rot: "0 180 0"},
+        {x: 59.0, y: 2.2, z: 4.9, rot: "0 180 0"},
+        {x: 62.5, y: 2.2, z: 4.9, rot: "0 180 0"},
+        {x: 53.1, y: 2.2, z: -3.5, rot: "0 90 0"},
+        {x: 53.1, y: 2.2, z: 3.5, rot: "0 90 0"},
+        // East Back Wall (no door)
+        {x: 67.9, y: 2.2, z: -3.5, rot: "0 -90 0"},
+        {x: 67.9, y: 2.2, z: -1.2, rot: "0 -90 0"},
+        {x: 67.9, y: 2.2, z: 1.2, rot: "0 -90 0"},
+        {x: 67.9, y: 2.2, z: 3.5, rot: "0 -90 0"}
+      ]
+    };
+
+    // Client-side text database populated from text files
+    const descriptions = {};
+
+    function loadDescriptions() {
+      const list = [
+        {key: 'bloom', file: 'descriptions/Квітнення.txt'},
+        {key: 'dopamine_1', file: 'descriptions/Дофамін_Група_1.txt'},
+        {key: 'dopamine_2', file: 'descriptions/Дофамін_Група_2.txt'},
+        {key: 'dopamine_3', file: 'descriptions/Дофамін_Група_3.txt'},
+        {key: 'dopamine_4', file: 'descriptions/Дофамін_Група_4.txt'},
+        {key: 'dopamine_5', file: 'descriptions/Дофамін_Група_5.txt'},
+        {key: 'dopamine_6', file: 'descriptions/Дофамін_Група_6.txt'},
+      ];
+      
+      list.forEach(item => {
+        fetch(item.file)
+          .then(res => res.text())
+          .then(text => {
+            descriptions[item.key] = text;
+          })
+          .catch(err => {
+            console.warn('Failed to load description:', item.file, err);
+            // Default fallback text if fetch fails (e.g. local file opening without server)
+            descriptions[item.key] = `Серія: ${item.key === 'bloom' ? 'Квітнення' : 'Дофамін, ' + item.key.split('_')[1] + ' група'}\nОпис знаходиться у файлі: ${item.file}`;
+          });
+      });
+    }
+
+    // Generate all 3D image entities on startup
+    window.addEventListener('DOMContentLoaded', () => {
+      loadDescriptions();
+      const container = document.getElementById('paintings-container');
+
+      // 1. Generate Bloom (Квітнення)
+      GALLERY_PHOTOS.bloom.forEach((filename, index) => {
+        const anchor = bloomAnchors[index];
+        if (!anchor) return;
+
+        const path = `assets/Квітнення/${filename}`;
+        const title = `КВІТНЕННЯ // РОБОТА #${index + 1}`;
+        const entity = createPaintingEntity(path, anchor, title, 'bloom');
+        container.appendChild(entity);
+      });
+
+      // 2. Generate Dopamine (Дофамін)
+      Object.keys(GALLERY_PHOTOS.dopamine).forEach(groupKey => {
+        const photos = GALLERY_PHOTOS.dopamine[groupKey];
+        const anchors = dopamineAnchors[groupKey];
+
+        photos.forEach((filename, index) => {
+          const anchor = anchors[index];
+          if (!anchor) return;
+
+          const path = `assets/Дофамін/${groupKey}/${filename}`;
+          const title = `ДОФАМІН // ГРУПА ${groupKey} // РОБОТА #${index + 1}`;
+          const entity = createPaintingEntity(path, anchor, title, `dopamine_${groupKey}`);
+          container.appendChild(entity);
+        });
+      });
+    });
+
+    // Helper function to build an image entity
+    function createPaintingEntity(src, anchor, title, descKey) {
+      const el = document.createElement('a-image');
+      el.setAttribute('class', 'interactable');
+      el.setAttribute('cursor-feedback', '');
+      el.setAttribute('position', `${anchor.x} ${anchor.y} ${anchor.z}`);
+      el.setAttribute('rotation', anchor.rot);
+      el.setAttribute('height', '4.0'); // Stretches from Y=0.2 to Y=4.2 (almost floor to ceiling)
+      
+      // Dynamic aspect-ratio scaling to prevent squishing
+      const img = new Image();
+      img.src = src;
+      img.onload = () => {
+        const ar = img.naturalWidth / img.naturalHeight;
+        const width = 4.0 * ar;
+        el.setAttribute('width', width);
+      };
+
+      // Set lazy loader to keep GPU memory low
+      el.setAttribute('dist-loader', `src: ${src}; distance: 16`);
+
+      // Set interactive click/tap modal popup
+      el.addEventListener('click', () => {
+        openArtwork(title, src, descKey);
+      });
+
+      return el;
+    }
+
     // Device Permission Request Flow
     function requestAccess() {
       const overlay = document.getElementById('overlay-ui');
@@ -818,60 +1078,20 @@
       }
     }
 
-    // Artwork Metadata Database
-    const artworkDB = {
-      snow: {
-        title: "GIEDI SNOW",
-        artist: "By Oleh Riabchenko, 2026",
-        desc: "An exploration of scale and geometry in extreme environments. Part of the 'Glacial Monoliths' series, this piece captures the tension between brutalist architecture and the fleeting purity of fresh snow under artificial neon light.",
-        camera: "Leica SL2 • Vario-Elmarit 24-90mm",
-        year: "2026",
-        src: "assets/giedi_snow.png"
-      },
-      streets: {
-        title: "CYBER STREETS",
-        artist: "By Oleh Riabchenko, 2026",
-        desc: "A rainy evening in Tokyo's neon alleys. Through high-contrast reflections and saturated cyan-orange color grading, the photograph explores urban isolation and the glowing synthetic warmth of the post-human metropolis.",
-        camera: "Sony A7R V • 35mm f/1.4 GM",
-        year: "2026",
-        src: "assets/cyber_streets.png"
-      },
-      dykhaite: {
-        title: "DYKHAITE",
-        artist: "By Oleh Riabchenko, 2026",
-        desc: "An ethereal fine art double-exposure portrait that merges human form with organic smoke and flora. 'Dykhaite' (meaning 'to breathe' in Ukrainian) represents the fragile, transient connection between inner consciousness and the natural elements.",
-        camera: "Hasselblad X2D • 80mm f/1.9",
-        year: "2026",
-        src: "assets/dykhaite.png"
-      },
-      brutalist: {
-        title: "BRUTALIST ECHO",
-        artist: "By Oleh Riabchenko, 2026",
-        desc: "A study of concrete facades, shadow patterns, and structural repetition. The harsh mid-day sun divides the frame into absolute black and stark gray textures, transforming architectural details into a rhythmic, abstract composition.",
-        camera: "Fujifilm GFX 100S • GF 45-100mm",
-        year: "2026",
-        src: "assets/brutalist_echo.png"
-      }
-    };
-
     // Open Interactive Modal
-    function openArtwork(id) {
-      const art = artworkDB[id];
-      if (!art) return;
-
-      document.getElementById('modal-img').src = art.src;
-      document.getElementById('modal-title').textContent = art.title;
-      document.getElementById('modal-artist').textContent = art.artist;
-      document.getElementById('modal-desc').textContent = art.desc;
-      document.getElementById('modal-cam').textContent = art.camera;
-      document.getElementById('modal-year').textContent = art.year;
+    function openArtwork(title, src, descKey) {
+      const desc = descriptions[descKey] || "Опис завантажується...";
+      
+      document.getElementById('modal-img').src = src;
+      document.getElementById('modal-title').textContent = title;
+      document.getElementById('modal-desc').textContent = desc;
+      document.getElementById('modal-year').textContent = "2026"; // Year of creation
 
       document.getElementById('art-modal').classList.add('active');
     }
 
     // Close Modal
     function closeModal(evt) {
-      // If event details are passed, verify that click was outside card or on close
       if (evt && evt.target !== document.getElementById('art-modal')) return;
       document.getElementById('art-modal').classList.remove('active');
     }
