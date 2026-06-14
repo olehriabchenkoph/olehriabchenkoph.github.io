@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, shrink-to-fit=no">
+  <title>AURA // 3D Virtual Photography Gallery</title>
+  <!-- SEO Meta Tags -->
+  <meta name="description" content="Immerse yourself in AURA, a minimalist 3D virtual photography gallery. Move physically on mobile using gyroscope controls, or explore using keyboard and mouse on desktop.">
+  <meta name="keywords" content="WebXR, A-Frame, 3D Gallery, Virtual Reality, Photography, Gyroscope Controls, Magic Window">
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@200;400;600;800&display=swap" rel="stylesheet">
+  
+  <!-- A-Frame CDN -->
+  <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
+
+  <style>
+    :root {
+      --bg-dark: #f0f0f4;
+      --bg-glass: rgba(255, 255, 255, 0.85);
+      --border-glass: rgba(0, 0, 0, 0.08);
+      --accent-neon: #5c5c93;
+      --text-main: #1d1d1f;
+      --text-muted: #6e6e73;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body, html {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      font-family: 'Outfit', sans-serif;
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+    }
+
+    /* 2D Overlay UI - Entry Screen (Light Mode) */
+    #overlay-ui {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at center, #ffffff 0%, #e8e8f0 100%);
+      transition: opacity 0.8s ease-in-out, visibility 0.8s ease-in-out;
+    }
+
+    #overlay-ui.fade-out {
+      opacity: 0;
+      visibility: hidden;
+    }
+
+    .glass-panel {
+      background: var(--bg-glass);
+      backdrop-filter: blur(25px);
+      -webkit-backdrop-filter: blur(25px);
+      border: 1px solid var(--border-glass);
+      border-radius: 24px;
+      padding: 48px;
+      max-width: 500px;
+      width: 90%;
+      text-align: center;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255,255,255,0.6);
+      transform: translateY(0);
+      animation: float 6s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+    }
+
+    .brand-title {
+      font-size: 3rem;
+      font-weight: 200;
+      letter-spacing: 0.5em;
+      margin-bottom: 8px;
+      color: var(--text-main);
+      text-indent: 0.5em;
+    }
+
+    .brand-subtitle {
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.3em;
+      color: var(--accent-neon);
+      margin-bottom: 32px;
+      font-weight: 600;
+    }
+
+    .instructions {
+      text-align: left;
+      margin-bottom: 36px;
+      padding: 20px;
+      background: rgba(0, 0, 0, 0.02);
+      border-radius: 12px;
+      border: 1px solid rgba(0, 0, 0, 0.04);
+    }
+
+    .instructions h3 {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-main);
+    }
+
+    .instructions p {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+      margin-bottom: 8px;
+    }
+
+    .btn-enter {
+      background: linear-gradient(135deg, #1d1d1f 0%, #434347 100%);
+      color: #ffffff;
+      border: 1px solid #1d1d1f;
+      padding: 16px 44px;
+      font-size: 1rem;
+      font-weight: 600;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      border-radius: 40px;
+      cursor: pointer;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+      transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+      outline: none;
+    }
+
+    .btn-enter:hover {
+      transform: scale(1.03);
+      box-shadow: 0 12px 25px rgba(92, 92, 147, 0.3);
+      border-color: var(--accent-neon);
+    }
+
+    /* 2D Control Bar Overlay (HUD - Light Mode) */
+    #hud-overlay {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 99;
+      background: var(--bg-glass);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid var(--border-glass);
+      padding: 10px 24px;
+      border-radius: 30px;
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      opacity: 0;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+      transition: opacity 1.5s ease-out;
+    }
+
+    #hud-overlay.visible {
+      opacity: 1;
+    }
+
+    .hud-text {
+      font-size: 0.75rem;
+      letter-spacing: 0.15em;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+
+    /* Interactive Art Detail Modal (Light Mode) */
+    #art-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 10000;
+      background: rgba(240, 240, 244, 0.88);
+      backdrop-filter: blur(15px);
+      -webkit-backdrop-filter: blur(15px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+    }
+
+    #art-modal.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-card {
+      background: linear-gradient(180deg, #ffffff 0%, #f4f4f8 100%);
+      border: 1px solid var(--border-glass);
+      border-radius: 20px;
+      width: 90%;
+      max-width: 850px;
+      max-height: 90vh;
+      overflow-y: auto;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.1);
+      transform: scale(0.95);
+      transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+      color: var(--text-main);
+    }
+
+    #art-modal.active .modal-card {
+      transform: scale(1);
+    }
+
+    .modal-img-container {
+      background: #fafafa;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 30px;
+      border-right: 1px solid var(--border-glass);
+    }
+
+    .modal-img-container img {
+      max-width: 100%;
+      max-height: 50vh;
+      object-fit: contain;
+      border-radius: 4px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+    }
+
+    .modal-info {
+      padding: 40px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .modal-header {
+      margin-bottom: 24px;
+    }
+
+    .modal-title {
+      font-size: 2rem;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      color: var(--text-main);
+    }
+
+    .modal-meta {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: var(--accent-neon);
+      margin-bottom: 20px;
+      font-weight: 600;
+    }
+
+    .modal-desc {
+      font-size: 0.9rem;
+      line-height: 1.7;
+      color: var(--text-muted);
+      margin-bottom: 24px;
+    }
+
+    .modal-technical {
+      font-size: 0.75rem;
+      background: rgba(0, 0, 0, 0.02);
+      border: 1px solid rgba(0, 0, 0, 0.05);
+      border-radius: 8px;
+      padding: 12px 16px;
+      margin-bottom: 32px;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .modal-technical span {
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .btn-close {
+      background: transparent;
+      border: 1px solid var(--text-main);
+      color: var(--text-main);
+      padding: 12px 24px;
+      font-size: 0.75rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      font-weight: 600;
+      border-radius: 30px;
+      cursor: pointer;
+      align-self: flex-start;
+      transition: all 0.3s ease;
+    }
+
+    .btn-close:hover {
+      background: var(--text-main);
+      color: #ffffff;
+      border-color: var(--text-main);
+    }
+
+    /* Custom Responsive Styling for Modal */
+    @media (max-width: 768px) {
+      .modal-card {
+        grid-template-columns: 1fr;
+        max-width: 500px;
+      }
+      .modal-img-container {
+        border-right: none;
+        border-bottom: 1px solid var(--border-glass);
+        padding: 20px;
+      }
+      .modal-info {
+        padding: 24px;
+      }
+      .modal-title {
+        font-size: 1.5rem;
+      }
+    }
+  </style>
+
+  <script>
+    // ----------------------------------------------------
+    // Custom A-Frame Component: Relative First Person Controls (Video Game style)
+    // ----------------------------------------------------
+    AFRAME.registerComponent('fps-wasd-controls', {
+      schema: {
+        speed: {type: 'number', default: 0.05}, // base step speed per frame
+        camera: {type: 'selector', default: '#camera'}
+      },
+      init: function () {
+        this.keys = {};
+        window.addEventListener('keydown', (e) => { this.keys[e.code] = true; });
+        window.addEventListener('keyup', (e) => { this.keys[e.code] = false; });
+      },
+      tick: function (time, timeDelta) {
+        let x = 0;
+        let z = 0;
+        if (this.keys['KeyW'] || this.keys['ArrowUp']) z -= 1;
+        if (this.keys['KeyS'] || this.keys['ArrowDown']) z += 1;
+        if (this.keys['KeyA'] || this.keys['ArrowLeft']) x -= 1;
+        if (this.keys['KeyD'] || this.keys['ArrowRight']) x += 1;
+
+        if (x === 0 && z === 0) return;
+
+        const cameraEl = this.data.camera;
+        if (!cameraEl) return;
+        
+        // Read camera's horizontal angle (yaw rotation around Y axis)
+        const cameraRotation = cameraEl.getAttribute('rotation');
+        const yaw = THREE.MathUtils.degToRad(cameraRotation.y);
+
+        // Normalize layout input
+        const moveVec = new THREE.Vector3(x, 0, z).normalize();
+
+        // Rotate movement vector based on camera's horizontal heading
+        const dx = moveVec.x * Math.cos(yaw) + moveVec.z * Math.sin(yaw);
+        const dz = -moveVec.x * Math.sin(yaw) + moveVec.z * Math.cos(yaw);
+
+        // Frame-rate independent scaling (base scale assuming 60fps ~ 16.6ms)
+        const dt = Math.min(timeDelta / 1000, 0.1);
+        const velocity = this.data.speed * 60 * dt;
+
+        // Apply shift directly to the camera-rig
+        const pos = this.el.object3D.position;
+        pos.x += dx * velocity;
+        pos.z += dz * velocity;
+      }
+    });
+
+    // ----------------------------------------------------
+    // Custom A-Frame Component: Teleport Handler
+    // ----------------------------------------------------
+    AFRAME.registerComponent('teleport-handler', {
+      schema: {
+        speed: {type: 'number', default: 0.12}, // Interpolation speed for smooth dash
+        floorId: {type: 'string', default: '#floor'},
+        indicatorId: {type: 'string', default: '#teleport-indicator'}
+      },
+      init: function () {
+        this.targetPos = new THREE.Vector3();
+        this.isMoving = false;
+        this.rig = this.el; // Rig entity
+        this.indicator = document.querySelector(this.data.indicatorId);
+        this.floor = document.querySelector(this.data.floorId);
+        
+        // Listen to clicks on the floor
+        this.floor.addEventListener('click', (evt) => {
+          const point = evt.detail.intersection.point;
+          
+          // Maintain the rig's native Y height constant
+          this.targetPos.set(point.x, this.rig.object3D.position.y, point.z);
+          this.isMoving = true;
+
+          // Position & animate the indicator ring
+          if (this.indicator) {
+            this.indicator.setAttribute('position', {x: point.x, y: 0.02, z: point.z});
+            this.indicator.setAttribute('visible', 'true');
+            
+            // Trigger visual pulse animation via setting attributes
+            this.indicator.setAttribute('animation__scale', {
+              property: 'scale',
+              from: '0.1 0.1 0.1',
+              to: '1.2 1.2 1.2',
+              dur: 400,
+              easing: 'easeOutQuad'
+            });
+            this.indicator.setAttribute('animation__opacity', {
+              property: 'material.opacity',
+              from: '0.9',
+              to: '0',
+              dur: 400,
+              easing: 'easeOutQuad'
+            });
+          }
+        });
+      },
+      tick: function () {
+        if (!this.isMoving) return;
+
+        const currentPos = this.rig.object3D.position;
+        // Linearly interpolate position for a smooth dashboard movement
+        currentPos.lerp(this.targetPos, this.data.speed);
+
+        // Snap to target if very close
+        if (currentPos.distanceTo(this.targetPos) < 0.05) {
+          currentPos.copy(this.targetPos);
+          this.isMoving = false;
+          if (this.indicator) {
+            this.indicator.setAttribute('visible', 'false');
+          }
+        }
+      }
+    });
+
+    // ----------------------------------------------------
+    // Custom A-Frame Component: Room Collision boundaries
+    // ----------------------------------------------------
+    AFRAME.registerComponent('room-boundary', {
+      schema: {
+        minX: {type: 'number', default: -7.2},
+        maxX: {type: 'number', default: 7.2},
+        minZ: {type: 'number', default: -7.2},
+        maxZ: {type: 'number', default: 7.2}
+      },
+      tick: function () {
+        const pos = this.el.object3D.position;
+        
+        // Clamp camera rig coordinates
+        if (pos.x < this.data.minX) pos.x = this.data.minX;
+        if (pos.x > this.data.maxX) pos.x = this.data.maxX;
+        if (pos.z < this.data.minZ) pos.z = this.data.minZ;
+        if (pos.z > this.data.maxZ) pos.z = this.data.maxZ;
+
+        // If currently teleporting, clamp targetPos to keep navigation aligned
+        const teleporter = this.el.components['teleport-handler'];
+        if (teleporter && teleporter.isMoving) {
+          const tPos = teleporter.targetPos;
+          if (tPos.x < this.data.minX) tPos.x = this.data.minX;
+          if (tPos.x > this.data.maxX) tPos.x = this.data.maxX;
+          if (tPos.z < this.data.minZ) tPos.z = this.data.minZ;
+          if (tPos.z > this.data.maxZ) tPos.z = this.data.maxZ;
+        }
+      }
+    });
+
+    // ----------------------------------------------------
+    // Custom A-Frame Component: Pointer Hover Feedback
+    // ----------------------------------------------------
+    AFRAME.registerComponent('cursor-feedback', {
+      init: function () {
+        this.el.addEventListener('mouseenter', () => {
+          document.body.style.cursor = 'pointer';
+        });
+        this.el.addEventListener('mouseleave', () => {
+          document.body.style.cursor = 'default';
+        });
+      }
+    });
+  </script>
+</head>
+<body>
+
+  <!-- 2D Overlay UI Entry Screen -->
+  <div id="overlay-ui">
+    <div class="glass-panel">
+      <h1 class="brand-title">AURA</h1>
+      <div class="brand-subtitle">Virtual 3D Gallery</div>
+      
+      <div class="instructions">
+        <h3>Exhibition Controls</h3>
+        <p><strong>Mobile:</strong> Physically rotate your phone to look around (Magic Window). Tap the floor grid to move forward.</p>
+        <p><strong>Desktop:</strong> Click and drag with mouse to look around. Use <strong>W A S D</strong> or Arrow keys to walk (relative to view direction), or click floor to teleport.</p>
+      </div>
+
+      <button id="btn-enter" class="btn-enter" onclick="requestAccess()">Enter Gallery</button>
+    </div>
+  </div>
+
+  <!-- 2D HUD Control Bar -->
+  <div id="hud-overlay">
+    <div class="hud-text">Drag mouse to look • Tap Floor to Move • Click Artworks to Inspect</div>
+  </div>
+
+  <!-- Interactive 2D Metadata Modal -->
+  <div id="art-modal" onclick="closeModal(event)">
+    <div class="modal-card" onclick="event.stopPropagation()">
+      <div class="modal-img-container">
+        <img id="modal-img" src="" alt="Artwork Preview">
+      </div>
+      <div class="modal-info">
+        <div class="modal-header">
+          <h2 id="modal-title" class="modal-title">Artwork Title</h2>
+          <div id="modal-artist" class="modal-meta">By Oleh Riabchenko, 2026</div>
+          <p id="modal-desc" class="modal-desc">This is a description of the photography artwork.</p>
+        </div>
+        <div class="modal-technical">
+          <div>Camera: <span id="modal-cam">Leica SL2</span></div>
+          <div>Year: <span id="modal-year">2026</span></div>
+        </div>
+        <button class="btn-close" onclick="closeModal(null)">Return to Gallery</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3D Scene (White Modern Aesthetic) -->
+  <a-scene loading-screen="dotsColor: #5c5c93; backgroundColor: #ffffff" renderer="antialias: true; colorManagement: true;">
+    
+    <!-- Asset Preloader -->
+    <a-assets>
+      <!-- Photography Images -->
+      <img id="img-snow" src="assets/giedi_snow.png" crossorigin="anonymous">
+      <img id="img-streets" src="assets/cyber_streets.png" crossorigin="anonymous">
+      <img id="img-dykhaite" src="assets/dykhaite.png" crossorigin="anonymous">
+      <img id="img-brutalist" src="assets/brutalist_echo.png" crossorigin="anonymous">
+    </a-assets>
+
+    <!-- Camera Rig -->
+    <a-entity id="camera-rig" position="0 0 0" fps-wasd-controls="speed: 0.07; camera: #camera" teleport-handler="floorId: #floor; indicatorId: #teleport-indicator" room-boundary="minX: -7.2; maxX: 7.2; minZ: -7.2; maxZ: 7.2">
+      
+      <!-- Camera Entity -->
+      <a-entity id="camera" camera="near: 0.1; far: 100" position="0 1.6 0" look-controls="pointerLockEnabled: false; touchEnabled: true;">
+        
+        <!-- Interactive Mouse Raycaster for Tap/Click mapping -->
+        <a-entity raycaster="objects: .teleportable, .interactable; far: 25" cursor="rayOrigin: mouse"></a-entity>
+        
+      </a-entity>
+      
+    </a-entity>
+
+    <!-- Teleport indicator marker (glowing virtual projection on floor) -->
+    <a-entity id="teleport-indicator" visible="false" position="0 0.02 0">
+      <a-ring rotation="-90 0 0" radius-inner="0.25" radius-outer="0.3" material="color: #5c5c93; shader: flat; transparent: true; opacity: 0.8"></a-ring>
+      <a-ring rotation="-90 0 0" radius-inner="0.05" radius-outer="0.1" material="color: #5c5c93; shader: flat; transparent: true; opacity: 0.9"></a-ring>
+    </a-entity>
+
+    <!-- Floor (Bright Concrete grid generated via procedural canvas on startup) -->
+    <a-plane id="floor" class="teleportable" rotation="-90 0 0" width="16" height="16" cursor-feedback></a-plane>
+
+    <!-- Ceiling (Clean white) -->
+    <a-plane rotation="90 0 0" position="0 5 0" width="16" height="16" material="color: #ffffff; roughness: 1; metalness: 0"></a-plane>
+
+    <!-- Structural Ceiling Beams for Premium Modern Architectural Look -->
+    <a-box position="0 4.9 -4" width="16" height="0.2" depth="0.8" material="color: #f0f0f4; roughness: 0.9"></a-box>
+    <a-box position="0 4.9 4" width="16" height="0.2" depth="0.8" material="color: #f0f0f4; roughness: 0.9"></a-box>
+    <a-box position="-4 4.9 0" rotation="0 90 0" width="16" height="0.2" depth="0.8" material="color: #f0f0f4; roughness: 0.9"></a-box>
+    <a-box position="4 4.9 0" rotation="0 90 0" width="16" height="0.2" depth="0.8" material="color: #f0f0f4; roughness: 0.9"></a-box>
+
+    <!-- ----------------------------------------------------
+         GALLERY WALLS & ARCHITECTURAL ELEMENTS (White Design)
+         ---------------------------------------------------- -->
+    
+    <!-- Base Room Outer Walls (Bright Matte White) -->
+    <a-box id="wall-north" position="0 2.5 -8" width="16" height="5" depth="0.2" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
+    <a-box id="wall-south" position="0 2.5 8" width="16" height="5" depth="0.2" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
+    <a-box id="wall-east" position="8 2.5 0" rotation="0 90 0" width="16" height="5" depth="0.2" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
+    <a-box id="wall-west" position="-8 2.5 0" rotation="0 90 0" width="16" height="5" depth="0.2" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
+
+    <!-- Architectural Pillars at Corners (Subtle Grey-White offset) -->
+    <a-box position="-7.8 2.5 -7.8" width="0.5" height="5" depth="0.5" material="color: #e5e5ea; roughness: 0.9"></a-box>
+    <a-box position="7.8 2.5 -7.8" width="0.5" height="5" depth="0.5" material="color: #e5e5ea; roughness: 0.9"></a-box>
+    <a-box position="-7.8 2.5 7.8" width="0.5" height="5" depth="0.5" material="color: #e5e5ea; roughness: 0.9"></a-box>
+    <a-box position="7.8 2.5 7.8" width="0.5" height="5" depth="0.5" material="color: #e5e5ea; roughness: 0.9"></a-box>
+
+    <!-- Elegant wall baseboard trims (Soft grey) -->
+    <a-box position="0 0.1 -7.9" width="16" height="0.2" depth="0.05" material="color: #d1d1d6"></a-box>
+    <a-box position="0 0.1 7.9" width="16" height="0.2" depth="0.05" material="color: #d1d1d6"></a-box>
+    <a-box position="7.9 0.1 0" rotation="0 90 0" width="16" height="0.2" depth="0.05" material="color: #d1d1d6"></a-box>
+    <a-box position="-7.9 0.1 0" rotation="0 90 0" width="16" height="0.2" depth="0.05" material="color: #d1d1d6"></a-box>
+
+    <!-- ----------------------------------------------------
+         LIGHTING RIG (Bright Gallery Spotlights & Accent Cones)
+         ---------------------------------------------------- -->
+    
+    <!-- Clean, bright Ambient light and directional lighting -->
+    <a-entity light="type: ambient; color: #eaeaff; intensity: 0.85"></a-entity>
+    <a-entity light="type: directional; color: #ffffff; intensity: 0.4" position="3 7 4"></a-entity>
+
+    <!-- Painting 1: GIEDI SNOW (North Wall, Center) -->
+    <!-- Warm spotlight highlighting the frame -->
+    <a-entity light="type: spot; color: #fffbe8; intensity: 1.8; angle: 40; penumbra: 0.6; distance: 6" position="0 4.4 -6.8" rotation="-50 0 0"></a-entity>
+    <a-cylinder radius="0.08" height="0.2" material="color: #e5e5ea; roughness: 0.5" position="0 4.8 -6.8" rotation="-40 0 0"></a-cylinder>
+    <!-- Soft light cone overlay for physical atmosphere -->
+    <a-cone radius-bottom="0.9" radius-top="0.08" height="2.8" material="color: #fffbe8; shader: flat; transparent: true; opacity: 0.05" position="0 3.3 -7.15" rotation="-50 0 0" open-ended="true"></a-cone>
+
+    <!-- Painting 2: CYBER STREETS (East Wall, Center) -->
+    <a-entity light="type: spot; color: #fffbe8; intensity: 1.8; angle: 40; penumbra: 0.6; distance: 6" position="6.8 4.4 0" rotation="-50 -90 0"></a-entity>
+    <a-cylinder radius="0.08" height="0.2" material="color: #e5e5ea; roughness: 0.5" position="6.8 4.8 0" rotation="-40 -90 0"></a-cylinder>
+    <a-cone radius-bottom="0.9" radius-top="0.08" height="2.8" material="color: #fffbe8; shader: flat; transparent: true; opacity: 0.05" position="7.15 3.3 0" rotation="-50 -90 0" open-ended="true"></a-cone>
+
+    <!-- Painting 3: DYKHAITE (South Wall, Center) -->
+    <a-entity light="type: spot; color: #fffbe8; intensity: 1.8; angle: 40; penumbra: 0.6; distance: 6" position="0 4.4 6.8" rotation="-50 180 0"></a-entity>
+    <a-cylinder radius="0.08" height="0.2" material="color: #e5e5ea; roughness: 0.5" position="0 4.8 6.8" rotation="-40 180 0"></a-cylinder>
+    <a-cone radius-bottom="0.9" radius-top="0.08" height="2.8" material="color: #fffbe8; shader: flat; transparent: true; opacity: 0.05" position="0 3.3 7.15" rotation="-50 180 0" open-ended="true"></a-cone>
+
+    <!-- Painting 4: BRUTALIST ECHO (West Wall, Center) -->
+    <a-entity light="type: spot; color: #fffbe8; intensity: 1.8; angle: 40; penumbra: 0.6; distance: 6" position="-6.8 4.4 0" rotation="-50 90 0"></a-entity>
+    <a-cylinder radius="0.08" height="0.2" material="color: #e5e5ea; roughness: 0.5" position="-6.8 4.8 0" rotation="-40 90 0"></a-cylinder>
+    <a-cone radius-bottom="0.9" radius-top="0.08" height="2.8" material="color: #fffbe8; shader: flat; transparent: true; opacity: 0.05" position="-7.15 3.3 0" rotation="-50 90 0" open-ended="true"></a-cone>
+
+
+    <!-- ----------------------------------------------------
+         ARTWORKS: FRAME, IMAGE, NAMEPLATE
+         ---------------------------------------------------- -->
+         
+    <!-- Painting 1: GIEDI SNOW (North Wall) -->
+    <a-entity id="art-snow" position="0 2.2 -7.88">
+      <!-- Dark elegant frame for high-contrast presentation on white walls -->
+      <a-box width="3.2" height="2.2" depth="0.06" material="color: #1a1a24; metalness: 0.2; roughness: 0.6"></a-box>
+      <!-- The Photo -->
+      <a-image id="frame-snow" class="interactable" cursor-feedback src="#img-snow" width="3.0" height="2.0" position="0 0 0.035" material="roughness: 0.3" onclick="openArtwork('snow')"></a-image>
+      <!-- Dark-colored titles for high readability -->
+      <a-text value="GIEDI SNOW" align="center" width="2.8" color="#1d1d26" font="kailasa" position="0 -1.35 0.04" font-weight="bold"></a-text>
+      <a-text value="Oleh Riabchenko, 2026" align="center" width="1.8" color="#6e6e73" font="kailasa" position="0 -1.5 0.04"></a-text>
+    </a-entity>
+
+    <!-- Painting 2: CYBER STREETS (East Wall) -->
+    <a-entity id="art-streets" position="7.88 2.2 0" rotation="0 -90 0">
+      <!-- Frame -->
+      <a-box width="2.2" height="3.2" depth="0.06" material="color: #1a1a24; metalness: 0.2; roughness: 0.6"></a-box>
+      <!-- Photo -->
+      <a-image id="frame-streets" class="interactable" cursor-feedback src="#img-streets" width="2.0" height="3.0" position="0 0 0.035" material="roughness: 0.3" onclick="openArtwork('streets')"></a-image>
+      <!-- Title -->
+      <a-text value="CYBER STREETS" align="center" width="2.8" color="#1d1d26" font="kailasa" position="0 -1.85 0.04" font-weight="bold"></a-text>
+      <a-text value="Oleh Riabchenko, 2026" align="center" width="1.8" color="#6e6e73" font="kailasa" position="0 -2.0 0.04"></a-text>
+    </a-entity>
+
+    <!-- Painting 3: DYKHAITE (South Wall) -->
+    <a-entity id="art-dykhaite" position="0 2.2 7.88" rotation="0 180 0">
+      <!-- Frame -->
+      <a-box width="3.2" height="2.2" depth="0.06" material="color: #1a1a24; metalness: 0.2; roughness: 0.6"></a-box>
+      <!-- Photo -->
+      <a-image id="frame-dykhaite" class="interactable" cursor-feedback src="#img-dykhaite" width="3.0" height="2.0" position="0 0 0.035" material="roughness: 0.3" onclick="openArtwork('dykhaite')"></a-image>
+      <!-- Title -->
+      <a-text value="DYKHAITE" align="center" width="2.8" color="#1d1d26" font="kailasa" position="0 -1.35 0.04" font-weight="bold"></a-text>
+      <a-text value="Oleh Riabchenko, 2026" align="center" width="1.8" color="#6e6e73" font="kailasa" position="0 -1.5 0.04"></a-text>
+    </a-entity>
+
+    <!-- Painting 4: BRUTALIST ECHO (West Wall) -->
+    <a-entity id="art-brutalist" position="-7.88 2.2 0" rotation="0 90 0">
+      <!-- Frame -->
+      <a-box width="2.2" height="3.2" depth="0.06" material="color: #1a1a24; metalness: 0.2; roughness: 0.6"></a-box>
+      <!-- Photo -->
+      <a-image id="frame-brutalist" class="interactable" cursor-feedback src="#img-brutalist" width="2.0" height="3.0" position="0 0 0.035" material="roughness: 0.3" onclick="openArtwork('brutalist')"></a-image>
+      <!-- Title -->
+      <a-text value="BRUTALIST ECHO" align="center" width="2.8" color="#1d1d26" font="kailasa" position="0 -1.85 0.04" font-weight="bold"></a-text>
+      <a-text value="Oleh Riabchenko, 2026" align="center" width="1.8" color="#6e6e73" font="kailasa" position="0 -2.0 0.04"></a-text>
+    </a-entity>
+
+  </a-scene>
+
+  <!-- ----------------------------------------------------
+       JAVASCRIPT APP LOGIC
+       ---------------------------------------------------- -->
+  <script>
+    // Create procedurally styled floor texture at startup
+    window.addEventListener('DOMContentLoaded', () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = 256;
+      canvas.height = 256;
+      const ctx = canvas.getContext('2d');
+      
+      // Floor concrete background (Clean White)
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, 256, 256);
+      
+      // Grid lines (Subtle Light Grey)
+      ctx.strokeStyle = '#eaeaea';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(0, 0, 256, 256);
+      
+      // Fine corner details
+      ctx.fillStyle = '#a3a3c2';
+      ctx.fillRect(0, 0, 3, 3);
+      ctx.fillRect(253, 0, 3, 3);
+      ctx.fillRect(0, 253, 3, 3);
+      ctx.fillRect(253, 253, 3, 3);
+      
+      // Create texture mapping and inject in A-Frame floor
+      const textureSrc = canvas.toDataURL();
+      const floorPlane = document.getElementById('floor');
+      floorPlane.setAttribute('material', `src: ${textureSrc}; repeat: 16 16; roughness: 0.95; metalness: 0.05`);
+    });
+
+    // Device Permission Request Flow
+    function requestAccess() {
+      const overlay = document.getElementById('overlay-ui');
+      const hud = document.getElementById('hud-overlay');
+
+      function hideOverlay() {
+        overlay.classList.add('fade-out');
+        setTimeout(() => {
+          overlay.style.display = 'none';
+          hud.classList.add('visible');
+        }, 800);
+      }
+
+      // Check if iOS DeviceOrientation request is needed
+      if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+        DeviceOrientationEvent.requestPermission()
+          .then(permissionState => {
+            if (permissionState === 'granted') {
+              console.log("DeviceOrientation sensor access granted.");
+            } else {
+              console.warn("DeviceOrientation access denied. Falling back to mouse controls.");
+            }
+            hideOverlay();
+          })
+          .catch(error => {
+            console.error("DeviceOrientation request error:", error);
+            hideOverlay(); // Fallback anyway
+          });
+      } else {
+        // Desktop or non-iOS browser
+        hideOverlay();
+      }
+    }
+
+    // Artwork Metadata Database
+    const artworkDB = {
+      snow: {
+        title: "GIEDI SNOW",
+        artist: "By Oleh Riabchenko, 2026",
+        desc: "An exploration of scale and geometry in extreme environments. Part of the 'Glacial Monoliths' series, this piece captures the tension between brutalist architecture and the fleeting purity of fresh snow under artificial neon light.",
+        camera: "Leica SL2 • Vario-Elmarit 24-90mm",
+        year: "2026",
+        src: "assets/giedi_snow.png"
+      },
+      streets: {
+        title: "CYBER STREETS",
+        artist: "By Oleh Riabchenko, 2026",
+        desc: "A rainy evening in Tokyo's neon alleys. Through high-contrast reflections and saturated cyan-orange color grading, the photograph explores urban isolation and the glowing synthetic warmth of the post-human metropolis.",
+        camera: "Sony A7R V • 35mm f/1.4 GM",
+        year: "2026",
+        src: "assets/cyber_streets.png"
+      },
+      dykhaite: {
+        title: "DYKHAITE",
+        artist: "By Oleh Riabchenko, 2026",
+        desc: "An ethereal fine art double-exposure portrait that merges human form with organic smoke and flora. 'Dykhaite' (meaning 'to breathe' in Ukrainian) represents the fragile, transient connection between inner consciousness and the natural elements.",
+        camera: "Hasselblad X2D • 80mm f/1.9",
+        year: "2026",
+        src: "assets/dykhaite.png"
+      },
+      brutalist: {
+        title: "BRUTALIST ECHO",
+        artist: "By Oleh Riabchenko, 2026",
+        desc: "A study of concrete facades, shadow patterns, and structural repetition. The harsh mid-day sun divides the frame into absolute black and stark gray textures, transforming architectural details into a rhythmic, abstract composition.",
+        camera: "Fujifilm GFX 100S • GF 45-100mm",
+        year: "2026",
+        src: "assets/brutalist_echo.png"
+      }
+    };
+
+    // Open Interactive Modal
+    function openArtwork(id) {
+      const art = artworkDB[id];
+      if (!art) return;
+
+      document.getElementById('modal-img').src = art.src;
+      document.getElementById('modal-title').textContent = art.title;
+      document.getElementById('modal-artist').textContent = art.artist;
+      document.getElementById('modal-desc').textContent = art.desc;
+      document.getElementById('modal-cam').textContent = art.camera;
+      document.getElementById('modal-year').textContent = art.year;
+
+      document.getElementById('art-modal').classList.add('active');
+    }
+
+    // Close Modal
+    function closeModal(evt) {
+      // If event details are passed, verify that click was outside card or on close
+      if (evt && evt.target !== document.getElementById('art-modal')) return;
+      document.getElementById('art-modal').classList.remove('active');
+    }
+  </script>
+</body>
+</html>
