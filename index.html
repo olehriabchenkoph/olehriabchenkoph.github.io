@@ -563,14 +563,14 @@
         let minX = -9.5;
         let maxX = 9.5;
         let minZ = -517.5;
-        let maxZ = 5.5;
+        let maxZ = 7.5;
 
         if (z >= -0.5) {
-          // In Foyer (Z from -0.5 to 5.5)
+          // In Foyer (Z from -0.5 to 7.5)
           minX = -9.5;
           maxX = 9.5;
           minZ = -0.5; // can't go north unless through doorways
-          maxZ = 5.5;
+          maxZ = 7.5;
 
           // Allow passing through doorways
           if (x >= -8 && x <= -2) {
@@ -715,7 +715,7 @@
   <a-scene loading-screen="dotsColor: #5c5c93; backgroundColor: #ffffff" renderer="antialias: true; colorManagement: true;">
     
     <!-- Camera Rig -->
-    <a-entity id="camera-rig" position="0 0 4" fps-wasd-controls="speed: 0.07; camera: #camera" swipe-movement-controls="speed: 0.8" teleport-handler="floorId: #floor; indicatorId: #teleport-indicator" room-boundary>
+    <a-entity id="camera-rig" position="0 0 6" fps-wasd-controls="speed: 0.07; camera: #camera" swipe-movement-controls="speed: 0.8" teleport-handler="floorId: #floor; indicatorId: #teleport-indicator" room-boundary>
       
       <!-- Camera Entity -->
       <a-entity id="camera" camera="near: 0.1; far: 100" position="0 1.6 0" look-controls="pointerLockEnabled: false; touchEnabled: false;">
@@ -739,10 +739,10 @@
          EXHIBITION WALLS (Solid Pure White)
          ---------------------------------------------------- -->
     
-    <!-- Foyer Entrance Hall (X: -10 to 10, Z: 0 to 6) -->
-    <a-box id="foyer-wall-south" position="0 2.5 6.05" width="20" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
-    <a-box id="foyer-wall-west" position="-10.05 2.5 3" rotation="0 90 0" width="6" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
-    <a-box id="foyer-wall-east" position="10.05 2.5 3" rotation="0 90 0" width="6" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
+    <!-- Foyer Entrance Hall (X: -10 to 10, Z: 0 to 8) -->
+    <a-box id="foyer-wall-south" position="0 2.5 8.05" width="20" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
+    <a-box id="foyer-wall-west" position="-10.05 2.5 4" rotation="0 90 0" width="8" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
+    <a-box id="foyer-wall-east" position="10.05 2.5 4" rotation="0 90 0" width="8" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
     <!-- Foyer North Wall with two doorways -->
     <a-box id="foyer-wall-north-left" position="-9 2.5 -0.05" width="2" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
     <a-box id="foyer-wall-north-center" position="0 2.5 -0.05" width="4" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
@@ -782,12 +782,10 @@
     <!-- Dopamine Room 2 Center Divider Wall -->
     <a-box position="5 2.5 -100" rotation="0 90 0" width="90" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>alness: 0.05"></a-box>
 
-    <!-- ----------------------------------------------------
-         LIGHTING (Bright Even Ambient & Directional Lights)
-         ---------------------------------------------------- -->
-    <a-entity light="type: ambient; color: #ffffff; intensity: 0.9"></a-entity>
-    <a-entity light="type: directional; color: #ffffff; intensity: 0.4" position="3 7 4"></a-entity>
-    <a-entity light="type: directional; color: #ffffff; intensity: 0.2" position="-5 6 -3"></a-entity>
+    <!-- Ambient & Hemisphere Lighting for soft natural 3D shading -->
+    <a-entity light="type: ambient; color: #ffffff; intensity: 0.4"></a-entity>
+    <a-entity light="type: hemisphere; color: #ffffff; groundColor: #cccccc; intensity: 0.6"></a-entity>
+    <a-entity light="type: directional; color: #ffffff; intensity: 0.3" position="3 7 4"></a-entity>
 
 
 
@@ -1050,6 +1048,28 @@
       return el;
     }
 
+    // Detect if gyroscope is active; fallback to touch-drag look controls if not
+    let orientationReceived = false;
+    function sensorCheck(e) {
+      if (e.alpha !== null || e.beta !== null || e.gamma !== null) {
+        orientationReceived = true;
+        window.removeEventListener('deviceorientation', sensorCheck);
+      }
+    }
+    window.addEventListener('deviceorientation', sensorCheck);
+
+    function enableTouchFallbackIfNoGyro() {
+      setTimeout(() => {
+        if (!orientationReceived) {
+          console.log("No gyroscope events detected. Enabling touch controls fallback.");
+          const cameraEl = document.getElementById('camera');
+          if (cameraEl) {
+            cameraEl.setAttribute('look-controls', 'pointerLockEnabled: false; touchEnabled: true;');
+          }
+        }
+      }, 1500);
+    }
+
     // Device Permission Request Flow
     function requestAccess() {
       const overlay = document.getElementById('overlay-ui');
@@ -1061,6 +1081,7 @@
           overlay.style.display = 'none';
           hud.classList.add('visible');
         }, 800);
+        enableTouchFallbackIfNoGyro();
       }
 
       // Check if iOS DeviceOrientation request is needed
