@@ -404,7 +404,7 @@
     // ----------------------------------------------------
     AFRAME.registerComponent('swipe-movement-controls', {
       schema: {
-        speed: {type: 'number', default: 0.15} // sensitivity scaling
+        speed: {type: 'number', default: 1.5} // Increased default speed 10x (from 0.15 to 1.5)
       },
       init: function () {
         this.rig = this.el;
@@ -438,8 +438,8 @@
           // Swipe down (deltaY > 0) -> move backward
           const dir = deltaY < 0 ? 1 : -1;
           
-          // Displacement speed scales with swipe speed/delta
-          const speedFactor = Math.min(Math.abs(deltaY) * 0.005, 0.2);
+          // Displacement speed scales with swipe speed/delta (increased scaling 10x)
+          const speedFactor = Math.min(Math.abs(deltaY) * 0.02, 1.0);
           
           // Calculate camera horizontal facing direction vector
           const forward = new THREE.Vector3(0, 0, -1);
@@ -642,7 +642,7 @@
     </a-assets>
 
     <!-- Camera Rig -->
-    <a-entity id="camera-rig" position="0 0 0" fps-wasd-controls="speed: 0.07; camera: #camera" swipe-movement-controls="speed: 0.15" teleport-handler="floorId: #floor; indicatorId: #teleport-indicator" room-boundary="minX: -7.2; maxX: 7.2; minZ: -7.2; maxZ: 7.2">
+    <a-entity id="camera-rig" position="0 0 0" fps-wasd-controls="speed: 0.07; camera: #camera" swipe-movement-controls="speed: 1.5" teleport-handler="floorId: #floor; indicatorId: #teleport-indicator" room-boundary="minX: -7.2; maxX: 7.2; minZ: -7.2; maxZ: 7.2">
       
       <!-- Camera Entity -->
       <a-entity id="camera" camera="near: 0.1; far: 100" position="0 1.6 0" look-controls="pointerLockEnabled: false; touchEnabled: false;">
