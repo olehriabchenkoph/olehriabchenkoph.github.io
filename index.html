@@ -338,6 +338,103 @@
 
   <script>
     // ----------------------------------------------------
+    // Helper: Clamp position to the valid gallery room boundaries
+    // ----------------------------------------------------
+    window.clampToBoundaries = function(x, z) {
+      const bounds = window.galleryBoundaries || {
+        bloomEnd: -140,
+        roomEnds: [-52, -150, -248, -346, -428, -518],
+        dividerStart: -55,
+        dividerEnd: -145
+      };
+
+      const room6End = bounds.roomEnds[5] || -518;
+      const bloomEnd = bounds.bloomEnd || -140;
+
+      // Player collision radius
+      const r = 0.6;
+
+      let outX = x;
+      let outZ = z;
+
+      // 1. Absolute outer constraints (prevents player from clipping out of the foyer/corridors)
+      const minPossibleZ = Math.min(bloomEnd, room6End);
+      const maxPossibleZ = 8.0;
+      if (outZ < minPossibleZ + r) outZ = minPossibleZ + r;
+      if (outZ > maxPossibleZ - r) outZ = maxPossibleZ - r;
+
+      if (outX < -10.0 + r) outX = -10.0 + r;
+      if (outX > 10.0 - r) outX = 10.0 - r;
+
+      // 2. Separate Bloom and Dopamine corridor boundary when Z < 0
+      if (outZ < r) {
+        if (outX < 0) {
+          // Bloom corridor (X from -10 to 0)
+          if (outX > -r) outX = -r;
+          if (outX < -10 + r) outX = -10 + r;
+          if (outZ < bloomEnd + r) outZ = bloomEnd + r;
+        } else {
+          // Dopamine corridor (X from 0 to 10)
+          if (outX < r) outX = r;
+          if (outX > 10 - r) outX = 10 - r;
+          if (outZ < room6End + r) outZ = room6End + r;
+        }
+      }
+
+      // 3. Resolve collisions with foyer north walls and internal room partition AABBs
+      const walls = [
+        // Foyer North Center wall: X from -2 to 2, Z = -0.05
+        { minX: -2, maxX: 2, minZ: -0.1, maxZ: 0.0 },
+        // Foyer North Left wall: X from -10 to -8, Z = -0.05
+        { minX: -10, maxX: -8, minZ: -0.1, maxZ: 0.0 },
+        // Foyer North Right wall: X from 8 to 10, Z = -0.05
+        { minX: 8, maxX: 10, minZ: -0.1, maxZ: 0.0 }
+      ];
+
+      // Dopamine internal room partitions
+      bounds.roomEnds.forEach((pZ, rIdx) => {
+        if (rIdx < 5) {
+          // Left partition: X from 0 to 3.5, Z = pZ
+          walls.push({ minX: 0, maxX: 3.5, minZ: pZ - 0.05, maxZ: pZ + 0.05 });
+          // Right partition: X from 6.5 to 10, Z = pZ
+          walls.push({ minX: 6.5, maxX: 10, minZ: pZ - 0.05, maxZ: pZ + 0.05 });
+        }
+      });
+
+      // Dopamine Room 2 Center Divider Wall
+      walls.push({ minX: 4.95, maxX: 5.05, minZ: bounds.dividerEnd, maxZ: bounds.dividerStart });
+
+      // Apply AABB collision response (sliding along closest edge)
+      walls.forEach(w => {
+        const res = clampAgainstAABB(outX, outZ, w.minX, w.maxX, w.minZ, w.maxZ, r);
+        outX = res.x;
+        outZ = res.z;
+      });
+
+      return { x: outX, z: outZ };
+    };
+
+    function clampAgainstAABB(x, z, minX, maxX, minZ, maxZ, r) {
+      if (x >= minX - r && x <= maxX + r && z >= minZ - r && z <= maxZ + r) {
+        const distL = x - (minX - r);
+        const distR = (maxX + r) - x;
+        const distT = z - (minZ - r);
+        const distB = (maxZ + r) - z;
+
+        const minDist = Math.min(distL, distR, distT, distB);
+        if (minDist === distL) {
+          x = minX - r;
+        } else if (minDist === distR) {
+          x = maxX + r;
+        } else if (minDist === distT) {
+          z = minZ - r;
+        } else {
+          z = maxZ + r;
+        }
+      }
+      return { x, z };
+    }
+    // ----------------------------------------------------
     // Custom A-Frame Component: Relative First Person Controls (Video Game style)
     // ----------------------------------------------------
     AFRAME.registerComponent('fps-wasd-controls', {
@@ -508,11 +605,15 @@
           if (AFRAME.utils.device.isMobile()) return;
           
           const point = evt.detail.intersection.point;
-          this.targetPos.set(point.x, this.rig.object3D.position.y, point.z);
+          
+          // Clamp target position to the room boundaries to prevent teleporting into/behind walls
+          const clamped = window.clampToBoundaries ? window.clampToBoundaries(point.x, point.z) : { x: point.x, z: point.z };
+          
+          this.targetPos.set(clamped.x, this.rig.object3D.position.y, clamped.z);
           this.isMoving = true;
 
           if (this.indicator) {
-            this.indicator.setAttribute('position', {x: point.x, y: 0.02, z: point.z});
+            this.indicator.setAttribute('position', {x: clamped.x, y: 0.02, z: clamped.z});
             this.indicator.setAttribute('visible', 'true');
             this.indicator.setAttribute('animation__scale', {
               property: 'scale',
@@ -557,56 +658,11 @@
       },
       tick: function () {
         const pos = this.el.object3D.position;
-        const x = pos.x;
-        const z = pos.z;
         
-        let minX = -9.5;
-        let maxX = 9.5;
-        let minZ = -517.5;
-        let maxZ = 7.5;
-
-        if (z >= -0.5) {
-          // In Foyer (Z from -0.5 to 7.5)
-          minX = -9.5;
-          maxX = 9.5;
-          minZ = -0.5; // can't go north unless through doorways
-          maxZ = 7.5;
-
-          // Allow passing through doorways
-          if (x >= -8 && x <= -2) {
-            minZ = -139.5; // Left doorway into Bloom corridor
-          } else if (x >= 2 && x <= 8) {
-            minZ = -517.5; // Right doorway into Dopamine corridor
-          }
-        } else {
-          // Z < -0.5 (Inside corridors)
-          if (x < 0) {
-            // Bloom Hall (Left corridor)
-            minX = -9.5;
-            maxX = -0.5;
-            minZ = -139.5;
-            maxZ = 0.5; // allow going back to foyer
-          } else {
-            // Dopamine Hall (Right corridor)
-            minX = 0.5;
-            maxX = 9.5;
-            minZ = -517.5;
-            maxZ = 0.5; // allow going back to foyer
-          }
-        }
-
-        // Apply clamping
-        if (pos.x < minX) pos.x = minX;
-        if (pos.x > maxX) pos.x = maxX;
-        if (pos.z < minZ) pos.z = minZ;
-        if (pos.z > maxZ) pos.z = maxZ;
-
-        // Prevent walking through Room 2's center divider at X = 5, Z between -145.5 and -54.5
-        if (pos.z >= -145.5 && pos.z <= -54.5) {
-          if (pos.x >= 4.5 && pos.x <= 5.5) {
-            pos.x = this.lastX;
-          }
-        }
+        // Clamp camera position to boundaries on tick
+        const clamped = window.clampToBoundaries ? window.clampToBoundaries(pos.x, pos.z) : { x: pos.x, z: pos.z };
+        pos.x = clamped.x;
+        pos.z = clamped.z;
 
         this.lastX = pos.x;
         this.lastZ = pos.z;
@@ -720,7 +776,7 @@
       <!-- Camera Entity -->
       <a-entity id="camera" camera="near: 0.1; far: 100" position="0 1.6 0" look-controls="pointerLockEnabled: false; touchEnabled: false;">
         <!-- Interactive Mouse Raycaster for Tap/Click mapping -->
-        <a-entity raycaster="objects: .teleportable, .interactable; far: 25" cursor="rayOrigin: mouse"></a-entity>
+        <a-entity raycaster="objects: .teleportable, .interactable, .collidable; far: 25" cursor="rayOrigin: mouse"></a-entity>
       </a-entity>
       
     </a-entity>
@@ -729,7 +785,9 @@
     <a-entity id="teleport-indicator" visible="false" position="0 0.02 0">
       <a-ring rotation="-90 0 0" radius-inner="0.25" radius-outer="0.3" material="color: #5c5c93; shader: flat; transparent: true; opacity: 0.8"></a-ring>
       <a-ring rotation="-90 0 0" radius-inner="0.05" radius-outer="0.1" material="color: #5c5c93; shader: flat; transparent: true; opacity: 0.9"></a-ring>
-    </a-ent    <!-- Floor (Solid Pure White, sized to fit the corridors and foyer) -->
+    </a-entity>
+
+    <!-- Floor (Solid Pure White, sized to fit the corridors and foyer) -->
     <a-plane id="floor" class="teleportable" rotation="-90 0 0" position="0 0 -256" width="30" height="540" material="color: #ffffff; roughness: 0.95; metalness: 0.05" cursor-feedback></a-plane>
 
     <!-- Ceiling (Clean white, sized to fit the corridors and foyer) -->
@@ -740,47 +798,13 @@
          ---------------------------------------------------- -->
     
     <!-- Foyer Entrance Hall (X: -10 to 10, Z: 0 to 8) -->
-    <a-box id="foyer-wall-south" position="0 2.5 8.05" width="20" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
-    <a-box id="foyer-wall-west" position="-10.05 2.5 4" rotation="0 90 0" width="8" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
-    <a-box id="foyer-wall-east" position="10.05 2.5 4" rotation="0 90 0" width="8" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
+    <a-box id="foyer-wall-south" class="collidable" position="0 2.5 8.05" width="20" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
+    <a-box id="foyer-wall-west" class="collidable" position="-10.05 2.5 4" rotation="0 90 0" width="8" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
+    <a-box id="foyer-wall-east" class="collidable" position="10.05 2.5 4" rotation="0 90 0" width="8" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
     <!-- Foyer North Wall with two doorways -->
-    <a-box id="foyer-wall-north-left" position="-9 2.5 -0.05" width="2" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
-    <a-box id="foyer-wall-north-center" position="0 2.5 -0.05" width="4" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
-    <a-box id="foyer-wall-north-right" position="9 2.5 -0.05" width="2" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
-
-    <!-- Hall 1: Bloom / Блум (X: -10 to 0, Z: 0 to -140) -->
-    <a-box id="bloom-wall-west" position="-10.05 2.5 -70" rotation="0 90 0" width="140" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
-    <a-box id="bloom-wall-east" position="-0.05 2.5 -70" rotation="0 90 0" width="140" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
-    <a-box id="bloom-wall-north" position="-5 2.5 -140.05" width="10" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
-
-    <!-- Hall 2: Dopamine / Дофамін (X: 0 to 10, Z: 0 to -518) -->
-    <a-box id="dopamine-wall-west" position="0.05 2.5 -259" rotation="0 90 0" width="518" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
-    <a-box id="dopamine-wall-east" position="10.05 2.5 -259" rotation="0 90 0" width="518" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
-    <a-box id="dopamine-wall-north" position="5 2.5 -518.05" width="10" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
-
-    <!-- Dopamine Internal Room Partitions -->
-    <!-- Room 1 & 2 Partition (Z = -52) -->
-    <a-box position="1.75 2.5 -52" width="3.5" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
-    <a-box position="8.25 2.5 -52" width="3.5" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
-
-    <!-- Room 2 & 3 Partition (Z = -150) -->
-    <a-box position="1.75 2.5 -150" width="3.5" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
-    <a-box position="8.25 2.5 -150" width="3.5" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
-
-    <!-- Room 3 & 4 Partition (Z = -248) -->
-    <a-box position="1.75 2.5 -248" width="3.5" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
-    <a-box position="8.25 2.5 -248" width="3.5" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
-
-    <!-- Room 4 & 5 Partition (Z = -346) -->
-    <a-box position="1.75 2.5 -346" width="3.5" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
-    <a-box position="8.25 2.5 -346" width="3.5" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
-
-    <!-- Room 5 & 6 Partition (Z = -428) -->
-    <a-box position="1.75 2.5 -428" width="3.5" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
-    <a-box position="8.25 2.5 -428" width="3.5" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
-
-    <!-- Dopamine Room 2 Center Divider Wall -->
-    <a-box position="5 2.5 -100" rotation="0 90 0" width="90" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>alness: 0.05"></a-box>
+    <a-box id="foyer-wall-north-left" class="collidable" position="-9 2.5 -0.05" width="2" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
+    <a-box id="foyer-wall-north-center" class="collidable" position="0 2.5 -0.05" width="4" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
+    <a-box id="foyer-wall-north-right" class="collidable" position="9 2.5 -0.05" width="2" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
 
     <!-- Ambient & Hemisphere Lighting for soft natural 3D shading -->
     <a-entity light="type: ambient; color: #ffffff; intensity: 0.4"></a-entity>
@@ -826,138 +850,6 @@
       }
     };
 
-    // Anchors for Bloom Hall (X: -10 to 0, Z: 0 to -140). Total 16 anchors.
-    const bloomAnchors = [
-      // West Wall (X = -9.9, facing East: rot "0 90 0")
-      {x: -9.9, y: 2.2, z: -15, rot: "0 90 0"},
-      {x: -9.9, y: 2.2, z: -30, rot: "0 90 0"},
-      {x: -9.9, y: 2.2, z: -45, rot: "0 90 0"},
-      {x: -9.9, y: 2.2, z: -60, rot: "0 90 0"},
-      {x: -9.9, y: 2.2, z: -75, rot: "0 90 0"},
-      {x: -9.9, y: 2.2, z: -90, rot: "0 90 0"},
-      {x: -9.9, y: 2.2, z: -105, rot: "0 90 0"},
-      {x: -9.9, y: 2.2, z: -120, rot: "0 90 0"},
-      // East Wall (X = -0.1, facing West: rot "0 -90 0")
-      {x: -0.1, y: 2.2, z: -15, rot: "0 -90 0"},
-      {x: -0.1, y: 2.2, z: -30, rot: "0 -90 0"},
-      {x: -0.1, y: 2.2, z: -45, rot: "0 -90 0"},
-      {x: -0.1, y: 2.2, z: -60, rot: "0 -90 0"},
-      {x: -0.1, y: 2.2, z: -75, rot: "0 -90 0"},
-      {x: -0.1, y: 2.2, z: -90, rot: "0 -90 0"},
-      {x: -0.1, y: 2.2, z: -105, rot: "0 -90 0"},
-      {x: -0.1, y: 2.2, z: -120, rot: "0 -90 0"}
-    ];
-
-    // Anchors for Dopamine Hall Rooms 1-6
-    const dopamineAnchors = {
-      // Group 1: 6 anchors (Room 1: Z = 0 to -52)
-      "1": [
-        {x: 9.9, y: 2.2, z: -15, rot: "0 -90 0"},
-        {x: 9.9, y: 2.2, z: -30, rot: "0 -90 0"},
-        {x: 9.9, y: 2.2, z: -45, rot: "0 -90 0"},
-        {x: 0.1, y: 2.2, z: -15, rot: "0 90 0"},
-        {x: 0.1, y: 2.2, z: -30, rot: "0 90 0"},
-        {x: 0.1, y: 2.2, z: -45, rot: "0 90 0"}
-      ],
-      // Group 2: 24 anchors (Room 2: Z = -52 to -150)
-      "2": [
-        // East Wall (X = 9.9)
-        {x: 9.9, y: 2.2, z: -67, rot: "0 -90 0"},
-        {x: 9.9, y: 2.2, z: -82, rot: "0 -90 0"},
-        {x: 9.9, y: 2.2, z: -97, rot: "0 -90 0"},
-        {x: 9.9, y: 2.2, z: -112, rot: "0 -90 0"},
-        {x: 9.9, y: 2.2, z: -127, rot: "0 -90 0"},
-        {x: 9.9, y: 2.2, z: -142, rot: "0 -90 0"},
-        // West Wall (X = 0.1)
-        {x: 0.1, y: 2.2, z: -67, rot: "0 90 0"},
-        {x: 0.1, y: 2.2, z: -82, rot: "0 90 0"},
-        {x: 0.1, y: 2.2, z: -97, rot: "0 90 0"},
-        {x: 0.1, y: 2.2, z: -112, rot: "0 90 0"},
-        {x: 0.1, y: 2.2, z: -127, rot: "0 90 0"},
-        {x: 0.1, y: 2.2, z: -142, rot: "0 90 0"},
-        // Center Divider East Side (X = 5.1)
-        {x: 5.1, y: 2.2, z: -67, rot: "0 90 0"},
-        {x: 5.1, y: 2.2, z: -82, rot: "0 90 0"},
-        {x: 5.1, y: 2.2, z: -97, rot: "0 90 0"},
-        {x: 5.1, y: 2.2, z: -112, rot: "0 90 0"},
-        {x: 5.1, y: 2.2, z: -127, rot: "0 90 0"},
-        {x: 5.1, y: 2.2, z: -142, rot: "0 90 0"},
-        // Center Divider West Side (X = 4.9)
-        {x: 4.9, y: 2.2, z: -67, rot: "0 -90 0"},
-        {x: 4.9, y: 2.2, z: -82, rot: "0 -90 0"},
-        {x: 4.9, y: 2.2, z: -97, rot: "0 -90 0"},
-        {x: 4.9, y: 2.2, z: -112, rot: "0 -90 0"},
-        {x: 4.9, y: 2.2, z: -127, rot: "0 -90 0"},
-        {x: 4.9, y: 2.2, z: -142, rot: "0 -90 0"}
-      ],
-      // Group 3: 11 anchors (Room 3: Z = -150 to -248)
-      "3": [
-        // East Wall
-        {x: 9.9, y: 2.2, z: -165, rot: "0 -90 0"},
-        {x: 9.9, y: 2.2, z: -180, rot: "0 -90 0"},
-        {x: 9.9, y: 2.2, z: -195, rot: "0 -90 0"},
-        {x: 9.9, y: 2.2, z: -210, rot: "0 -90 0"},
-        {x: 9.9, y: 2.2, z: -225, rot: "0 -90 0"},
-        {x: 9.9, y: 2.2, z: -240, rot: "0 -90 0"},
-        // West Wall
-        {x: 0.1, y: 2.2, z: -165, rot: "0 90 0"},
-        {x: 0.1, y: 2.2, z: -180, rot: "0 90 0"},
-        {x: 0.1, y: 2.2, z: -195, rot: "0 90 0"},
-        {x: 0.1, y: 2.2, z: -210, rot: "0 90 0"},
-        {x: 0.1, y: 2.2, z: -225, rot: "0 90 0"}
-      ],
-      // Group 4: 12 anchors (Room 4: Z = -248 to -346)
-      "4": [
-        // East Wall
-        {x: 9.9, y: 2.2, z: -263, rot: "0 -90 0"},
-        {x: 9.9, y: 2.2, z: -278, rot: "0 -90 0"},
-        {x: 9.9, y: 2.2, z: -293, rot: "0 -90 0"},
-        {x: 9.9, y: 2.2, z: -308, rot: "0 -90 0"},
-        {x: 9.9, y: 2.2, z: -323, rot: "0 -90 0"},
-        {x: 9.9, y: 2.2, z: -338, rot: "0 -90 0"},
-        // West Wall
-        {x: 0.1, y: 2.2, z: -263, rot: "0 90 0"},
-        {x: 0.1, y: 2.2, z: -278, rot: "0 90 0"},
-        {x: 0.1, y: 2.2, z: -293, rot: "0 90 0"},
-        {x: 0.1, y: 2.2, z: -308, rot: "0 90 0"},
-        {x: 0.1, y: 2.2, z: -323, rot: "0 90 0"},
-        {x: 0.1, y: 2.2, z: -338, rot: "0 90 0"}
-      ],
-      // Group 5: 10 anchors (Room 5: Z = -346 to -428)
-      "5": [
-        // East Wall
-        {x: 9.9, y: 2.2, z: -361, rot: "0 -90 0"},
-        {x: 9.9, y: 2.2, z: -376, rot: "0 -90 0"},
-        {x: 9.9, y: 2.2, z: -391, rot: "0 -90 0"},
-        {x: 9.9, y: 2.2, z: -406, rot: "0 -90 0"},
-        {x: 9.9, y: 2.2, z: -421, rot: "0 -90 0"},
-        // West Wall
-        {x: 0.1, y: 2.2, z: -361, rot: "0 90 0"},
-        {x: 0.1, y: 2.2, z: -376, rot: "0 90 0"},
-        {x: 0.1, y: 2.2, z: -391, rot: "0 90 0"},
-        {x: 0.1, y: 2.2, z: -406, rot: "0 90 0"},
-        {x: 0.1, y: 2.2, z: -421, rot: "0 90 0"}
-      ],
-      // Group 6: 12 anchors (Room 6: Z = -428 to -518)
-      "6": [
-        // East Wall
-        {x: 9.9, y: 2.2, z: -443, rot: "0 -90 0"},
-        {x: 9.9, y: 2.2, z: -458, rot: "0 -90 0"},
-        {x: 9.9, y: 2.2, z: -473, rot: "0 -90 0"},
-        {x: 9.9, y: 2.2, z: -488, rot: "0 -90 0"},
-        {x: 9.9, y: 2.2, z: -503, rot: "0 -90 0"},
-        // West Wall
-        {x: 0.1, y: 2.2, z: -443, rot: "0 90 0"},
-        {x: 0.1, y: 2.2, z: -458, rot: "0 90 0"},
-        {x: 0.1, y: 2.2, z: -473, rot: "0 90 0"},
-        {x: 0.1, y: 2.2, z: -488, rot: "0 90 0"},
-        {x: 0.1, y: 2.2, z: -503, rot: "0 90 0"},
-        // North Back Wall
-        {x: 3.3, y: 2.2, z: -517.9, rot: "0 180 0"},
-        {x: 6.7, y: 2.2, z: -517.9, rot: "0 180 0"}
-      ]
-    };
-
     // Client-side text database populated from text files
     const descriptions = {};
 
@@ -980,69 +872,297 @@
           })
           .catch(err => {
             console.warn('Failed to load description:', item.file, err);
-            // Default fallback text if fetch fails (e.g. local file opening without server)
             descriptions[item.key] = `Серія: ${item.key === 'bloom' ? 'Квітнення' : 'Дофамін, ' + item.key.split('_')[1] + ' група'}\nОпис знаходиться у файлі: ${item.file}`;
           });
       });
     }
 
-    // Generate all 3D image entities on startup
+    // Generate dynamic layout on DOMContentLoaded
     window.addEventListener('DOMContentLoaded', () => {
+      const bloomPaths = GALLERY_PHOTOS.bloom.map(f => `assets/Квітнення/${f}`);
+      
+      const dopaminePaths = {};
+      Object.keys(GALLERY_PHOTOS.dopamine).forEach(gk => {
+        dopaminePaths[gk] = GALLERY_PHOTOS.dopamine[gk].map(f => `assets/Дофамін/${gk}/${f}`);
+      });
+
+      // Synchronously map aspect ratios (scanned beforehand, all are 0.8 except one 1.4972)
+      const arMap = {};
+      const IMAGE_ASPECT_RATIOS = {
+        "assets/Дофамін/2/116.jpg": 1.4972
+      };
+      
+      bloomPaths.forEach(src => {
+        arMap[src] = IMAGE_ASPECT_RATIOS[src] || 0.8;
+      });
+      Object.keys(dopaminePaths).forEach(gk => {
+        dopaminePaths[gk].forEach(src => {
+          arMap[src] = IMAGE_ASPECT_RATIOS[src] || 0.8;
+        });
+      });
+
+      // 1. Calculate Bloom anchors (1.5x width gap)
+      const bloomAnchorsList = [];
+      let lastZWest = -8;
+      let lastZEast = -8;
+
+      bloomPaths.forEach((src, index) => {
+        const ar = arMap[src] || 1.0;
+        const w = 4.0 * ar;
+        const gap = 1.5 * w; // edge-to-edge gap is exactly 1.5x width
+        
+        if (index % 2 === 0) {
+          const z = lastZWest - w / 2;
+          bloomAnchorsList.push({ x: -9.9, y: 2.2, z, rot: "0 90 0", src, descKey: 'bloom', title: `BLOOM // WORK #${index + 1}` });
+          lastZWest = z - w / 2 - gap;
+        } else {
+          const z = lastZEast - w / 2;
+          bloomAnchorsList.push({ x: -0.1, y: 2.2, z, rot: "0 -90 0", src, descKey: 'bloom', title: `BLOOM // WORK #${index + 1}` });
+          lastZEast = z - w / 2 - gap;
+        }
+      });
+      
+      const bloomEnd = Math.min(lastZWest, lastZEast) - 4.0;
+
+      // 2. Calculate Dopamine anchors split across 6 rooms
+      const dopamineAnchorsMap = {};
+      const dopamineRoomEnds = [];
+      let dividerStart = 0;
+      let dividerEnd = 0;
+
+      // Room 1 (Group 1)
+      let lastZ1E = -8;
+      let lastZ1W = -8;
+      dopamineAnchorsMap["1"] = [];
+      dopaminePaths["1"].forEach((src, index) => {
+        const ar = arMap[src] || 1.0;
+        const w = 4.0 * ar;
+        const gap = 1.5 * w;
+        if (index % 2 === 0) {
+          const z = lastZ1E - w / 2;
+          dopamineAnchorsMap["1"].push({ x: 9.9, y: 2.2, z, rot: "0 -90 0", src, descKey: 'dopamine_1', title: `DOPAMINE // GROUP 1 // WORK #${index + 1}` });
+          lastZ1E = z - w / 2 - gap;
+        } else {
+          const z = lastZ1W - w / 2;
+          dopamineAnchorsMap["1"].push({ x: 0.1, y: 2.2, z, rot: "0 90 0", src, descKey: 'dopamine_1', title: `DOPAMINE // GROUP 1 // WORK #${index + 1}` });
+          lastZ1W = z - w / 2 - gap;
+        }
+      });
+      const room1End = Math.min(lastZ1E, lastZ1W) - 4.0;
+      dopamineRoomEnds.push(room1End);
+
+      // Room 2 (Group 2) - 4 surfaces to fit 24 photos
+      dopamineAnchorsMap["2"] = [];
+      dividerStart = room1End - 3.0;
+      let lastZ2E = room1End - 4.0;
+      let lastZ2W = room1End - 4.0;
+      let lastZ2DivE = room1End - 4.0;
+      let lastZ2DivW = room1End - 4.0;
+      dopaminePaths["2"].forEach((src, index) => {
+        const ar = arMap[src] || 1.0;
+        const w = 4.0 * ar;
+        const gap = 1.5 * w;
+        const mode = index % 4;
+        if (mode === 0) {
+          const z = lastZ2E - w / 2;
+          dopamineAnchorsMap["2"].push({ x: 9.9, y: 2.2, z, rot: "0 -90 0", src, descKey: 'dopamine_2', title: `DOPAMINE // GROUP 2 // WORK #${index + 1}` });
+          lastZ2E = z - w / 2 - gap;
+        } else if (mode === 1) {
+          const z = lastZ2W - w / 2;
+          dopamineAnchorsMap["2"].push({ x: 0.1, y: 2.2, z, rot: "0 90 0", src, descKey: 'dopamine_2', title: `DOPAMINE // GROUP 2 // WORK #${index + 1}` });
+          lastZ2W = z - w / 2 - gap;
+        } else if (mode === 2) {
+          const z = lastZ2DivE - w / 2;
+          dopamineAnchorsMap["2"].push({ x: 5.1, y: 2.2, z, rot: "0 90 0", src, descKey: 'dopamine_2', title: `DOPAMINE // GROUP 2 // WORK #${index + 1}` });
+          lastZ2DivE = z - w / 2 - gap;
+        } else {
+          const z = lastZ2DivW - w / 2;
+          dopamineAnchorsMap["2"].push({ x: 4.9, y: 2.2, z, rot: "0 -90 0", src, descKey: 'dopamine_2', title: `DOPAMINE // GROUP 2 // WORK #${index + 1}` });
+          lastZ2DivW = z - w / 2 - gap;
+        }
+      });
+      const room2End = Math.min(lastZ2E, lastZ2W, lastZ2DivE, lastZ2DivW) - 4.0;
+      dividerEnd = room2End + 3.0;
+      dopamineRoomEnds.push(room2End);
+
+      // Room 3 (Group 3)
+      dopamineAnchorsMap["3"] = [];
+      let lastZ3E = room2End - 4.0;
+      let lastZ3W = room2End - 4.0;
+      dopaminePaths["3"].forEach((src, index) => {
+        const ar = arMap[src] || 1.0;
+        const w = 4.0 * ar;
+        const gap = 1.5 * w;
+        if (index % 2 === 0) {
+          const z = lastZ3E - w / 2;
+          dopamineAnchorsMap["3"].push({ x: 9.9, y: 2.2, z, rot: "0 -90 0", src, descKey: 'dopamine_3', title: `DOPAMINE // GROUP 3 // WORK #${index + 1}` });
+          lastZ3E = z - w / 2 - gap;
+        } else {
+          const z = lastZ3W - w / 2;
+          dopamineAnchorsMap["3"].push({ x: 0.1, y: 2.2, z, rot: "0 90 0", src, descKey: 'dopamine_3', title: `DOPAMINE // GROUP 3 // WORK #${index + 1}` });
+          lastZ3W = z - w / 2 - gap;
+        }
+      });
+      const room3End = Math.min(lastZ3E, lastZ3W) - 4.0;
+      dopamineRoomEnds.push(room3End);
+
+      // Room 4 (Group 4)
+      dopamineAnchorsMap["4"] = [];
+      let lastZ4E = room3End - 4.0;
+      let lastZ4W = room3End - 4.0;
+      dopaminePaths["4"].forEach((src, index) => {
+        const ar = arMap[src] || 1.0;
+        const w = 4.0 * ar;
+        const gap = 1.5 * w;
+        if (index % 2 === 0) {
+          const z = lastZ4E - w / 2;
+          dopamineAnchorsMap["4"].push({ x: 9.9, y: 2.2, z, rot: "0 -90 0", src, descKey: 'dopamine_4', title: `DOPAMINE // GROUP 4 // WORK #${index + 1}` });
+          lastZ4E = z - w / 2 - gap;
+        } else {
+          const z = lastZ4W - w / 2;
+          dopamineAnchorsMap["4"].push({ x: 0.1, y: 2.2, z, rot: "0 90 0", src, descKey: 'dopamine_4', title: `DOPAMINE // GROUP 4 // WORK #${index + 1}` });
+          lastZ4W = z - w / 2 - gap;
+        }
+      });
+      const room4End = Math.min(lastZ4E, lastZ4W) - 4.0;
+      dopamineRoomEnds.push(room4End);
+
+      // Room 5 (Group 5)
+      dopamineAnchorsMap["5"] = [];
+      let lastZ5E = room4End - 4.0;
+      let lastZ5W = room4End - 4.0;
+      dopaminePaths["5"].forEach((src, index) => {
+        const ar = arMap[src] || 1.0;
+        const w = 4.0 * ar;
+        const gap = 1.5 * w;
+        if (index % 2 === 0) {
+          const z = lastZ5E - w / 2;
+          dopamineAnchorsMap["5"].push({ x: 9.9, y: 2.2, z, rot: "0 -90 0", src, descKey: 'dopamine_5', title: `DOPAMINE // GROUP 5 // WORK #${index + 1}` });
+          lastZ5E = z - w / 2 - gap;
+        } else {
+          const z = lastZ5W - w / 2;
+          dopamineAnchorsMap["5"].push({ x: 0.1, y: 2.2, z, rot: "0 90 0", src, descKey: 'dopamine_5', title: `DOPAMINE // GROUP 5 // WORK #${index + 1}` });
+          lastZ5W = z - w / 2 - gap;
+        }
+      });
+      const room5End = Math.min(lastZ5E, lastZ5W) - 4.0;
+      dopamineRoomEnds.push(room5End);
+
+      // Room 6 (Group 6)
+      dopamineAnchorsMap["6"] = [];
+      let lastZ6E = room5End - 4.0;
+      let lastZ6W = room5End - 4.0;
+      const group6Photos = dopaminePaths["6"];
+      group6Photos.forEach((src, index) => {
+        const ar = arMap[src] || 1.0;
+        const w = 4.0 * ar;
+        const gap = 1.5 * w;
+        if (index < 10) {
+          if (index % 2 === 0) {
+            const z = lastZ6E - w / 2;
+            dopamineAnchorsMap["6"].push({ x: 9.9, y: 2.2, z, rot: "0 -90 0", src, descKey: 'dopamine_6', title: `DOPAMINE // GROUP 6 // WORK #${index + 1}` });
+            lastZ6E = z - w / 2 - gap;
+          } else {
+            const z = lastZ6W - w / 2;
+            dopamineAnchorsMap["6"].push({ x: 0.1, y: 2.2, z, rot: "0 90 0", src, descKey: 'dopamine_6', title: `DOPAMINE // GROUP 6 // WORK #${index + 1}` });
+            lastZ6W = z - w / 2 - gap;
+          }
+        }
+      });
+
+      const room6End = Math.min(lastZ6E, lastZ6W) - 6.0;
+      dopamineRoomEnds.push(room6End);
+
+      // Place remaining photos in Group 6 on the back wall
+      if (group6Photos.length > 10) {
+        const src10 = group6Photos[10];
+        dopamineAnchorsMap["6"].push({ x: 3.3, y: 2.2, z: room6End + 0.1, rot: "0 180 0", src: src10, descKey: 'dopamine_6', title: `DOPAMINE // GROUP 6 // WORK #11` });
+      }
+      if (group6Photos.length > 11) {
+        const src11 = group6Photos[11];
+        dopamineAnchorsMap["6"].push({ x: 6.7, y: 2.2, z: room6End + 0.1, rot: "0 180 0", src: src11, descKey: 'dopamine_6', title: `DOPAMINE // GROUP 6 // WORK #12` });
+      }
+
+      // Set global boundaries
+      window.galleryBoundaries = {
+        bloomEnd,
+        roomEnds: dopamineRoomEnds,
+        dividerStart,
+        dividerEnd
+      };
+
+      // Create Walls Dynamically
+      const sceneEl = document.querySelector('a-scene');
+
+      // Bloom walls
+      createBoxWall(sceneEl, 'bloom-west', -10.05, bloomEnd / 2, 0.1, 5, Math.abs(bloomEnd), 0);
+      createBoxWall(sceneEl, 'bloom-east', -0.05, bloomEnd / 2, 0.1, 5, Math.abs(bloomEnd), 0);
+      createBoxWall(sceneEl, 'bloom-north', -5, bloomEnd - 0.05, 10, 5, 0.1, 0);
+
+      // Dopamine walls
+      const dopamineEnd = room6End;
+      createBoxWall(sceneEl, 'dopamine-west', 0.05, dopamineEnd / 2, 0.1, 5, Math.abs(dopamineEnd), 0);
+      createBoxWall(sceneEl, 'dopamine-east', 10.05, dopamineEnd / 2, 0.1, 5, Math.abs(dopamineEnd), 0);
+      createBoxWall(sceneEl, 'dopamine-north', 5, dopamineEnd - 0.05, 10, 5, 0.1, 0);
+
+      // Dopamine internal partitions
+      dopamineRoomEnds.forEach((pZ, rIdx) => {
+        if (rIdx < 5) {
+          createBoxWall(sceneEl, null, 1.75, pZ, 3.5, 5, 0.1, 0);
+          createBoxWall(sceneEl, null, 8.25, pZ, 3.5, 5, 0.1, 0);
+        }
+      });
+
+      // Room 2 center divider
+      createBoxWall(sceneEl, 'dopamine-divider', 5, (dividerStart + dividerEnd) / 2, 0.1, 5, Math.abs(dividerEnd - dividerStart), 0);
+
+      // Build dynamic HTML entities
       loadDescriptions();
       const container = document.getElementById('paintings-container');
 
-      // 1. Generate Bloom (Квітнення)
-      GALLERY_PHOTOS.bloom.forEach((filename, index) => {
-        const anchor = bloomAnchors[index];
-        if (!anchor) return;
-
-        const path = `assets/Квітнення/${filename}`;
-        const title = `BLOOM // WORK #${index + 1}`;
-        const entity = createPaintingEntity(path, anchor, title, 'bloom');
+      // Generate Bloom paintings
+      bloomAnchorsList.forEach(anch => {
+        const entity = createDynamicPaintingEntity(anch, arMap[anch.src]);
         container.appendChild(entity);
       });
 
-      // 2. Generate Dopamine (Дофамін)
-      Object.keys(GALLERY_PHOTOS.dopamine).forEach(groupKey => {
-        const photos = GALLERY_PHOTOS.dopamine[groupKey];
-        const anchors = dopamineAnchors[groupKey];
-
-        photos.forEach((filename, index) => {
-          const anchor = anchors[index];
-          if (!anchor) return;
-
-          const path = `assets/Дофамін/${groupKey}/${filename}`;
-          const title = `DOPAMINE // GROUP ${groupKey} // WORK #${index + 1}`;
-          const entity = createPaintingEntity(path, anchor, title, `dopamine_${groupKey}`);
+      // Generate Dopamine paintings
+      Object.keys(dopamineAnchorsMap).forEach(gk => {
+        dopamineAnchorsMap[gk].forEach(anch => {
+          const entity = createDynamicPaintingEntity(anch, arMap[anch.src]);
           container.appendChild(entity);
         });
       });
     });
 
-    // Helper function to build an image entity
-    function createPaintingEntity(src, anchor, title, descKey) {
+    function createBoxWall(sceneEl, id, x, z, w, h, d, rotY) {
+      const el = document.createElement('a-box');
+      if (id) el.setAttribute('id', id);
+      el.setAttribute('class', 'collidable');
+      el.setAttribute('position', `${x} ${h/2} ${z}`);
+      el.setAttribute('rotation', `0 ${rotY} 0`);
+      el.setAttribute('width', w);
+      el.setAttribute('height', h);
+      el.setAttribute('depth', d);
+      el.setAttribute('material', 'color: #ffffff; roughness: 0.95; metalness: 0.05');
+      sceneEl.appendChild(el);
+    }
+
+    function createDynamicPaintingEntity(anch, ar) {
       const el = document.createElement('a-image');
       el.setAttribute('class', 'interactable');
       el.setAttribute('cursor-feedback', '');
-      el.setAttribute('position', `${anchor.x} ${anchor.y} ${anchor.z}`);
-      el.setAttribute('rotation', anchor.rot);
-      el.setAttribute('height', '4.0'); // Stretches from Y=0.2 to Y=4.2 (almost floor to ceiling)
+      el.setAttribute('position', `${anch.x} ${anch.y} ${anch.z}`);
+      el.setAttribute('rotation', anch.rot);
+      el.setAttribute('height', '4.0');
       
-      // Dynamic aspect-ratio scaling to prevent squishing
-      const img = new Image();
-      img.src = src;
-      img.onload = () => {
-        const ar = img.naturalWidth / img.naturalHeight;
-        const width = 4.0 * ar;
-        el.setAttribute('width', width);
-      };
+      const width = 4.0 * (ar || 1.0);
+      el.setAttribute('width', width);
 
-      // Set lazy loader to keep GPU memory low
-      el.setAttribute('dist-loader', `src: ${src}; distance: 16`);
+      el.setAttribute('dist-loader', `src: ${anch.src}; distance: 16`);
 
-      // Set interactive click/tap modal popup
       el.addEventListener('click', () => {
-        openArtwork(title, src, descKey);
+        openArtwork(anch.title, anch.src, anch.descKey);
       });
 
       return el;
