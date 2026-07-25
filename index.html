@@ -1,30 +1,15 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="uk">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, shrink-to-fit=no">
-  <title>Oleh Riabchenko // 3D Virtual Gallery</title>
-  <!-- SEO Meta Tags -->
-  <meta name="description" content="Explore the virtual photography exhibition of Oleh Riabchenko, showcasing series Bloom and Dopamine in a boundless 3D white space.">
-  <!-- Google Fonts -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Oleh Riabchenko // В процесі розробки</title>
+  <meta name="description" content="Сайт Олега Рябченка зараз оновлюється. Скоро повернемось.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@200;400;600;800&display=swap" rel="stylesheet">
-  
-  <!-- A-Frame CDN -->
-  <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
-
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@200;400;700&display=swap" rel="stylesheet">
   <style>
-    :root {
-      --bg-dark: #f5f5f7;
-      --bg-glass: rgba(255, 255, 255, 0.85);
-      --border-glass: rgba(0, 0, 0, 0.08);
-      --accent-neon: #5c5c93;
-      --text-main: #1d1d1f;
-      --text-muted: #6e6e73;
-    }
-
-    * {
+    *, *::before, *::after {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
@@ -33,1272 +18,272 @@
     body, html {
       width: 100%;
       height: 100%;
-      overflow: hidden;
       font-family: 'Outfit', sans-serif;
-      background-color: var(--bg-dark);
-      color: var(--text-main);
+      background: #0a0a0f;
+      color: #e8e8f0;
+      overflow: hidden;
     }
 
-    /* 2D Overlay UI - Entry Screen */
-    #overlay-ui {
+    /* Animated starfield background */
+    .bg {
       position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      z-index: 9999;
+      inset: 0;
+      background:
+        radial-gradient(ellipse at 20% 50%, rgba(92, 92, 147, 0.15) 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 20%, rgba(120, 80, 180, 0.1) 0%, transparent 50%),
+        #0a0a0f;
+    }
+
+    .noise {
+      position: fixed;
+      inset: 0;
+      opacity: 0.03;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+      background-size: 128px 128px;
+      pointer-events: none;
+    }
+
+    /* Floating particles */
+    .particles {
+      position: fixed;
+      inset: 0;
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    .particle {
+      position: absolute;
+      border-radius: 50%;
+      background: rgba(150, 130, 220, 0.6);
+      animation: drift linear infinite;
+    }
+
+    @keyframes drift {
+      0% { transform: translateY(100vh) scale(0); opacity: 0; }
+      10% { opacity: 1; }
+      90% { opacity: 1; }
+      100% { transform: translateY(-10vh) scale(1); opacity: 0; }
+    }
+
+    /* Center stage */
+    .stage {
+      position: relative;
+      z-index: 10;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      background: radial-gradient(circle at center, #ffffff 0%, #e8e8f0 100%);
-      transition: opacity 0.8s ease-in-out, visibility 0.8s ease-in-out;
-    }
-
-    #overlay-ui.fade-out {
-      opacity: 0;
-      visibility: hidden;
-    }
-
-    .glass-panel {
-      background: var(--bg-glass);
-      backdrop-filter: blur(25px);
-      -webkit-backdrop-filter: blur(25px);
-      border: 1px solid var(--border-glass);
-      border-radius: 24px;
-      padding: 48px;
-      max-width: 500px;
-      width: 90%;
+      height: 100vh;
+      padding: 24px;
       text-align: center;
-      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255,255,255,0.6);
-      transform: translateY(0);
-      animation: float 6s ease-in-out infinite;
     }
 
-    @keyframes float {
-      0%, 100% { transform: translateY(0px); }
-      50% { transform: translateY(-10px); }
+    /* Glowing ring */
+    .ring {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      border: 1px solid rgba(150, 130, 220, 0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 40px;
+      position: relative;
+      animation: pulse-ring 3s ease-in-out infinite;
     }
 
-    .brand-title {
-      font-size: 2.2rem;
+    .ring::before {
+      content: '';
+      position: absolute;
+      inset: 8px;
+      border-radius: 50%;
+      border: 1px solid rgba(150, 130, 220, 0.2);
+      animation: pulse-ring 3s ease-in-out infinite 0.5s;
+    }
+
+    .ring::after {
+      content: '';
+      position: absolute;
+      inset: -16px;
+      border-radius: 50%;
+      border: 1px solid rgba(150, 130, 220, 0.1);
+      animation: pulse-ring 3s ease-in-out infinite 1s;
+    }
+
+    @keyframes pulse-ring {
+      0%, 100% { opacity: 0.4; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.04); }
+    }
+
+    .ring-icon {
+      font-size: 2.4rem;
+      animation: spin-slow 12s linear infinite;
+    }
+
+    @keyframes spin-slow {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    /* Label above title */
+    .eyebrow {
+      font-size: 0.7rem;
+      letter-spacing: 0.4em;
+      text-transform: uppercase;
+      color: rgba(150, 130, 220, 0.8);
+      font-weight: 700;
+      margin-bottom: 16px;
+      animation: fadeUp 0.8s ease both 0.2s;
+    }
+
+    /* Main heading */
+    h1 {
+      font-size: clamp(2rem, 6vw, 4rem);
       font-weight: 200;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: #e8e8f0;
+      line-height: 1.1;
+      margin-bottom: 8px;
+      animation: fadeUp 0.8s ease both 0.4s;
+    }
+
+    /* Subtitle */
+    .subtitle {
+      font-size: clamp(0.8rem, 2vw, 1rem);
       letter-spacing: 0.3em;
-      margin-bottom: 8px;
-      color: var(--text-main);
-      text-indent: 0.3em;
       text-transform: uppercase;
+      color: rgba(150, 130, 220, 0.7);
+      font-weight: 700;
+      margin-bottom: 40px;
+      animation: fadeUp 0.8s ease both 0.5s;
     }
 
-    .brand-subtitle {
-      font-size: 0.9rem;
-      text-transform: uppercase;
-      letter-spacing: 0.2em;
-      color: var(--accent-neon);
-      margin-bottom: 32px;
-      font-weight: 600;
+    /* Divider */
+    .divider {
+      width: 60px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(150, 130, 220, 0.6), transparent);
+      margin: 0 auto 40px;
+      animation: fadeUp 0.8s ease both 0.6s;
     }
 
-    .instructions {
-      text-align: left;
-      margin-bottom: 36px;
-      padding: 20px;
-      background: rgba(0, 0, 0, 0.02);
-      border-radius: 12px;
-      border: 1px solid rgba(0, 0, 0, 0.04);
+    /* Status message */
+    .status-card {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(150, 130, 220, 0.15);
+      border-radius: 16px;
+      padding: 28px 40px;
+      max-width: 480px;
+      width: 100%;
+      animation: fadeUp 0.8s ease both 0.7s;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
     }
 
-    .instructions h3 {
-      font-size: 1rem;
-      font-weight: 600;
-      margin-bottom: 12px;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-      color: var(--text-main);
-    }
-
-    .instructions p {
-      font-size: 0.85rem;
-      color: var(--text-muted);
-      line-height: 1.6;
-      margin-bottom: 8px;
-    }
-
-    .btn-enter {
-      background: linear-gradient(135deg, #1d1d1f 0%, #434347 100%);
-      color: #ffffff;
-      border: 1px solid #1d1d1f;
-      padding: 16px 44px;
-      font-size: 1rem;
-      font-weight: 600;
+    .status-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.75rem;
       letter-spacing: 0.2em;
       text-transform: uppercase;
-      border-radius: 40px;
-      cursor: pointer;
-      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-      transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-      outline: none;
+      color: rgba(150, 130, 220, 0.9);
+      font-weight: 700;
+      margin-bottom: 14px;
     }
 
-    .btn-enter:hover {
-      transform: scale(1.03);
-      box-shadow: 0 12px 25px rgba(92, 92, 147, 0.3);
-      border-color: var(--accent-neon);
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: rgba(150, 130, 220, 1);
+      animation: blink 1.5s ease-in-out infinite;
     }
 
-    /* 2D Control Bar Overlay (HUD) */
-    #hud-overlay {
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.2; }
+    }
+
+    .status-text {
+      font-size: 0.95rem;
+      color: rgba(220, 220, 235, 0.65);
+      line-height: 1.7;
+      font-weight: 200;
+    }
+
+    /* Footer signature */
+    .signature {
       position: fixed;
-      bottom: 24px;
+      bottom: 28px;
       left: 50%;
       transform: translateX(-50%);
-      z-index: 99;
-      background: var(--bg-glass);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-      border: 1px solid var(--border-glass);
-      padding: 10px 24px;
-      border-radius: 30px;
-      pointer-events: none;
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      opacity: 0;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-      transition: opacity 1.5s ease-out;
-    }
-
-    #hud-overlay.visible {
-      opacity: 1;
-    }
-
-    .hud-text {
-      font-size: 0.75rem;
-      letter-spacing: 0.15em;
-      color: var(--text-muted);
+      font-size: 0.7rem;
+      letter-spacing: 0.25em;
+      color: rgba(150, 130, 220, 0.3);
       text-transform: uppercase;
-      font-weight: 600;
+      animation: fadeUp 1s ease both 1s;
+      white-space: nowrap;
     }
 
-    /* Interactive Art Detail Modal */
-    #art-modal {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      z-index: 10000;
-      background: rgba(240, 240, 244, 0.88);
-      backdrop-filter: blur(15px);
-      -webkit-backdrop-filter: blur(15px);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
-    }
-
-    #art-modal.active {
-      opacity: 1;
-      pointer-events: auto;
-    }
-
-    .modal-card {
-      background: linear-gradient(180deg, #ffffff 0%, #f4f4f8 100%);
-      border: 1px solid var(--border-glass);
-      border-radius: 20px;
-      width: 95%;
-      max-width: 850px;
-      max-height: 90vh;
-      overflow-y: auto;
-      -webkit-overflow-scrolling: touch;
-      display: grid;
-      grid-template-columns: 1.2fr 1fr;
-      box-shadow: 0 20px 50px rgba(0,0,0,0.1);
-      transform: scale(0.95);
-      transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
-      color: var(--text-main);
-    }
-
-    #art-modal.active .modal-card {
-      transform: scale(1);
-    }
-
-    .modal-img-container {
-      background: #fafafa;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-      border-right: 1px solid var(--border-glass);
-    }
-
-    .modal-img-container img {
-      max-width: 100%;
-      max-height: 60vh;
-      object-fit: contain;
-      border-radius: 4px;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
-    }
-
-    .modal-info {
-      padding: 40px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-    }
-
-    .modal-header {
-      margin-bottom: 24px;
-    }
-
-    .modal-title {
-      font-size: 1.8rem;
-      font-weight: 800;
-      letter-spacing: 0.05em;
-      margin-bottom: 4px;
-      text-transform: uppercase;
-      color: var(--text-main);
-    }
-
-    .modal-meta {
-      font-size: 0.85rem;
-      text-transform: uppercase;
-      letter-spacing: 0.15em;
-      color: var(--accent-neon);
-      margin-bottom: 20px;
-      font-weight: 600;
-    }
-
-    .modal-desc {
-      font-size: 0.95rem;
-      line-height: 1.7;
-      color: var(--text-muted);
-      margin-bottom: 24px;
-      white-space: pre-wrap;
-    }
-
-    .modal-technical {
-      font-size: 0.75rem;
-      background: rgba(0, 0, 0, 0.02);
-      border: 1px solid rgba(0, 0, 0, 0.05);
-      border-radius: 8px;
-      padding: 12px 16px;
-      margin-bottom: 32px;
-      color: var(--text-muted);
-      display: flex;
-      justify-content: space-between;
-    }
-
-    .modal-technical span {
-      font-weight: 600;
-      color: var(--text-main);
-    }
-
-    .btn-close {
-      background: transparent;
-      border: 1px solid var(--text-main);
-      color: var(--text-main);
-      padding: 12px 24px;
-      font-size: 0.75rem;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      font-weight: 600;
-      border-radius: 30px;
-      cursor: pointer;
-      align-self: flex-start;
-      transition: all 0.3s ease;
-    }
-
-    .btn-close:hover {
-      background: var(--text-main);
-      color: #ffffff;
-      border-color: var(--text-main);
-    }
-
-    /* Custom Responsive Styling for Modal */
-    @media (max-width: 768px) {
-      .modal-card {
-        grid-template-columns: 1fr;
-        max-width: 500px;
-      }
-      .modal-img-container {
-        border-right: none;
-        border-bottom: 1px solid var(--border-glass);
-        padding: 20px;
-      }
-      .modal-info {
-        padding: 24px;
-      }
-      .modal-title {
-        font-size: 1.4rem;
-      }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
     }
   </style>
-
-  <script>
-    // Mouse drag vs click detector for desktop look controls
-    let mouseDownX = 0;
-    let mouseDownY = 0;
-    window.isDragging = false;
-
-    window.addEventListener('mousedown', (e) => {
-      mouseDownX = e.clientX;
-      mouseDownY = e.clientY;
-      window.isDragging = false;
-    });
-
-    window.addEventListener('mouseup', (e) => {
-      const dist = Math.hypot(e.clientX - mouseDownX, e.clientY - mouseDownY);
-      if (dist > 8) {
-        window.isDragging = true;
-      }
-    });
-
-    // ----------------------------------------------------
-    // Helper: Clamp position to the valid gallery room boundaries
-    // ----------------------------------------------------
-    window.clampToBoundaries = function(x, z) {
-      const bounds = window.galleryBoundaries || {
-        bloomEnd: -140,
-        roomEnds: [-52, -150, -248, -346, -428, -518],
-        dividerStart: -55,
-        dividerEnd: -145
-      };
-
-      const room6End = bounds.roomEnds[5] || -518;
-      const bloomEnd = bounds.bloomEnd || -140;
-
-      // Player collision radius
-      const r = 0.6;
-
-      let outX = x;
-      let outZ = z;
-
-      // 1. Absolute outer constraints (prevents player from clipping out of the foyer/corridors)
-      const minPossibleZ = Math.min(bloomEnd, room6End);
-      const maxPossibleZ = 8.0;
-      if (outZ < minPossibleZ + r) outZ = minPossibleZ + r;
-      if (outZ > maxPossibleZ - r) outZ = maxPossibleZ - r;
-
-      if (outX < -10.0 + r) outX = -10.0 + r;
-      if (outX > 10.0 - r) outX = 10.0 - r;
-
-      // 2. Separate Bloom and Dopamine corridor boundary when Z < 0
-      if (outZ < r) {
-        if (outX < 0) {
-          // Bloom corridor (X from -10 to 0)
-          if (outX > -r) outX = -r;
-          if (outX < -10 + r) outX = -10 + r;
-          if (outZ < bloomEnd + r) outZ = bloomEnd + r;
-        } else {
-          // Dopamine corridor (X from 0 to 10)
-          if (outX < r) outX = r;
-          if (outX > 10 - r) outX = 10 - r;
-          if (outZ < room6End + r) outZ = room6End + r;
-        }
-      }
-
-      // 3. Resolve collisions with foyer north walls and internal room partition AABBs
-      const walls = [
-        // Foyer North Center wall: X from -2 to 2, Z = -0.05
-        { minX: -2, maxX: 2, minZ: -0.1, maxZ: 0.0 },
-        // Foyer North Left wall: X from -10 to -8, Z = -0.05
-        { minX: -10, maxX: -8, minZ: -0.1, maxZ: 0.0 },
-        // Foyer North Right wall: X from 8 to 10, Z = -0.05
-        { minX: 8, maxX: 10, minZ: -0.1, maxZ: 0.0 }
-      ];
-
-      // Dopamine internal room partitions
-      bounds.roomEnds.forEach((pZ, rIdx) => {
-        if (rIdx < 5) {
-          // Left partition: X from 0 to 3.5, Z = pZ
-          walls.push({ minX: 0, maxX: 3.5, minZ: pZ - 0.05, maxZ: pZ + 0.05 });
-          // Right partition: X from 6.5 to 10, Z = pZ
-          walls.push({ minX: 6.5, maxX: 10, minZ: pZ - 0.05, maxZ: pZ + 0.05 });
-        }
-      });
-
-      // Dopamine Room 2 Center Divider Wall
-      walls.push({ minX: 4.95, maxX: 5.05, minZ: bounds.dividerEnd, maxZ: bounds.dividerStart });
-
-      // Apply AABB collision response (sliding along closest edge)
-      walls.forEach(w => {
-        const res = clampAgainstAABB(outX, outZ, w.minX, w.maxX, w.minZ, w.maxZ, r);
-        outX = res.x;
-        outZ = res.z;
-      });
-
-      return { x: outX, z: outZ };
-    };
-
-    function clampAgainstAABB(x, z, minX, maxX, minZ, maxZ, r) {
-      if (x >= minX - r && x <= maxX + r && z >= minZ - r && z <= maxZ + r) {
-        const distL = x - (minX - r);
-        const distR = (maxX + r) - x;
-        const distT = z - (minZ - r);
-        const distB = (maxZ + r) - z;
-
-        const minDist = Math.min(distL, distR, distT, distB);
-        if (minDist === distL) {
-          x = minX - r;
-        } else if (minDist === distR) {
-          x = maxX + r;
-        } else if (minDist === distT) {
-          z = minZ - r;
-        } else {
-          z = maxZ + r;
-        }
-      }
-      return { x, z };
-    }
-    // ----------------------------------------------------
-    // Custom A-Frame Component: Relative First Person Controls (Video Game style)
-    // ----------------------------------------------------
-    AFRAME.registerComponent('fps-wasd-controls', {
-      schema: {
-        speed: {type: 'number', default: 0.05}, // movement step speed
-        camera: {type: 'selector', default: '#camera'}
-      },
-      init: function () {
-        this.keys = {};
-        window.addEventListener('keydown', (e) => { this.keys[e.code] = true; });
-        window.addEventListener('keyup', (e) => { this.keys[e.code] = false; });
-      },
-      tick: function (time, timeDelta) {
-        let x = 0;
-        let z = 0;
-        if (this.keys['KeyW'] || this.keys['ArrowUp']) z -= 1;
-        if (this.keys['KeyS'] || this.keys['ArrowDown']) z += 1;
-        if (this.keys['KeyA'] || this.keys['ArrowLeft']) x -= 1;
-        if (this.keys['KeyD'] || this.keys['ArrowRight']) x += 1;
-
-        if (x === 0 && z === 0) return;
-
-        const cameraEl = this.data.camera;
-        if (!cameraEl) return;
-        
-        const cameraObject = cameraEl.object3D;
-
-        // Extract camera directional vectors relative to gravity plane
-        const forward = new THREE.Vector3(0, 0, -1);
-        forward.applyQuaternion(cameraObject.quaternion);
-        forward.y = 0;
-        forward.normalize();
-
-        const right = new THREE.Vector3(1, 0, 0);
-        right.applyQuaternion(cameraObject.quaternion);
-        right.y = 0;
-        right.normalize();
-
-        const direction = new THREE.Vector3();
-        if (z === -1) direction.addScaledVector(forward, 1);
-        if (z === 1) direction.addScaledVector(forward, -1);
-        if (x === -1) direction.addScaledVector(right, -1);
-        if (x === 1) direction.addScaledVector(right, 1);
-
-        if (direction.lengthSq() === 0) return;
-        direction.normalize();
-
-        const dt = Math.min(timeDelta / 1000, 0.1);
-        const velocity = this.data.speed * 60 * dt;
-
-        const pos = this.el.object3D.position;
-        pos.addScaledVector(direction, velocity);
-      }
-    });
-
-    // ----------------------------------------------------
-    // Custom A-Frame Component: Swipe Movement Controls (Mobile)
-    // ----------------------------------------------------
-    AFRAME.registerComponent('swipe-movement-controls', {
-      schema: {
-        speed: {type: 'number', default: 2.5} // sensitivity scaling
-      },
-      init: function () {
-        this.rig = this.el;
-        this.camera = document.querySelector('#camera').object3D;
-        this.touchStartX = 0;
-        this.touchStartY = 0;
-        this.isSwiping = false;
-
-        this.onTouchStart = this.onTouchStart.bind(this);
-        this.onTouchMove = this.onTouchMove.bind(this);
-        this.onTouchEnd = this.onTouchEnd.bind(this);
-
-        window.addEventListener('touchstart', this.onTouchStart, {passive: false});
-        window.addEventListener('touchmove', this.onTouchMove, {passive: false});
-        window.addEventListener('touchend', this.onTouchEnd);
-      },
-      onTouchStart: function (e) {
-        const modal = document.getElementById('art-modal');
-        if (modal && modal.classList.contains('active')) return;
-
-        if (e.touches.length === 1) {
-          this.touchStartX = e.touches[0].clientX;
-          this.touchStartY = e.touches[0].clientY;
-          this.isSwiping = true;
-        }
-      },
-      onTouchMove: function (e) {
-        const modal = document.getElementById('art-modal');
-        if (modal && modal.classList.contains('active')) return;
-
-        if (!this.isSwiping || e.touches.length !== 1) return;
-
-        const currentX = e.touches[0].clientX;
-        const currentY = e.touches[0].clientY;
-        
-        const deltaX = currentX - this.touchStartX;
-        const deltaY = currentY - this.touchStartY;
-
-        const deadzone = 8;
-        const moveVec = new THREE.Vector3();
-
-        const forward = new THREE.Vector3(0, 0, -1);
-        forward.applyQuaternion(this.camera.quaternion);
-        forward.y = 0;
-        forward.normalize();
-
-        const right = new THREE.Vector3(1, 0, 0);
-        right.applyQuaternion(this.camera.quaternion);
-        right.y = 0;
-        right.normalize();
-
-        // 1. Process vertical swipe (forward/backward)
-        if (Math.abs(deltaY) > deadzone) {
-          const dirForward = deltaY < 0 ? 1 : -1;
-          const speedFactorY = Math.min(Math.abs(deltaY) * 0.02, 1.0);
-          moveVec.addScaledVector(forward, dirForward * speedFactorY);
-        }
-
-        // 2. Process horizontal swipe (strafe left/right)
-        if (Math.abs(deltaX) > deadzone) {
-          const dirRight = deltaX < 0 ? -1 : 1;
-          const speedFactorX = Math.min(Math.abs(deltaX) * 0.02, 1.0);
-          moveVec.addScaledVector(right, dirRight * speedFactorX);
-        }
-
-        if (moveVec.lengthSq() > 0) {
-          moveVec.normalize();
-          const maxDelta = Math.max(Math.abs(deltaX), Math.abs(deltaY));
-          const totalSpeed = Math.min(maxDelta * 0.03 * this.data.speed, 1.5);
-          
-          const pos = this.rig.object3D.position;
-          pos.addScaledVector(moveVec, totalSpeed);
-
-          const boundary = this.rig.components['room-boundary'];
-          if (boundary) {
-            boundary.tick();
-          }
-        }
-
-        this.touchStartX = currentX;
-        this.touchStartY = currentY;
-        
-        e.preventDefault();
-      },
-      onTouchEnd: function () {
-        this.isSwiping = false;
-      },
-      remove: function () {
-        window.removeEventListener('touchstart', this.onTouchStart);
-        window.removeEventListener('touchmove', this.onTouchMove);
-        window.removeEventListener('touchend', this.onTouchEnd);
-      }
-    });
-
-    // ----------------------------------------------------
-    // Custom A-Frame Component: Teleport Handler (Desktop Click-to-teleport)
-    // ----------------------------------------------------
-    AFRAME.registerComponent('teleport-handler', {
-      schema: {
-        speed: {type: 'number', default: 0.12},
-        floorId: {type: 'string', default: '#floor'},
-        indicatorId: {type: 'string', default: '#teleport-indicator'}
-      },
-      init: function () {
-        this.targetPos = new THREE.Vector3();
-        this.isMoving = false;
-        this.rig = this.el;
-        this.indicator = document.querySelector(this.data.indicatorId);
-        this.floor = document.querySelector(this.data.floorId);
-        
-        this.floor.addEventListener('click', (evt) => {
-          if (window.isDragging) return; // Ignore drag release clicks
-          // Disable teleportation on mobile/tablet (only allow swipes)
-          if (AFRAME.utils.device.isMobile()) return;
-          
-          const point = evt.detail.intersection.point;
-          
-          // Clamp target position to the room boundaries to prevent teleporting into/behind walls
-          const clamped = window.clampToBoundaries ? window.clampToBoundaries(point.x, point.z) : { x: point.x, z: point.z };
-          
-          this.targetPos.set(clamped.x, this.rig.object3D.position.y, clamped.z);
-          this.isMoving = true;
-
-          if (this.indicator) {
-            this.indicator.setAttribute('position', {x: clamped.x, y: 0.02, z: clamped.z});
-            this.indicator.setAttribute('visible', 'true');
-            this.indicator.setAttribute('animation__scale', {
-              property: 'scale',
-              from: '0.1 0.1 0.1',
-              to: '1.2 1.2 1.2',
-              dur: 400,
-              easing: 'easeOutQuad'
-            });
-            this.indicator.setAttribute('animation__opacity', {
-              property: 'material.opacity',
-              from: '0.9',
-              to: '0',
-              dur: 400,
-              easing: 'easeOutQuad'
-            });
-          }
-        });
-      },
-      tick: function () {
-        if (!this.isMoving) return;
-
-        const currentPos = this.rig.object3D.position;
-        currentPos.lerp(this.targetPos, this.data.speed);
-
-        if (currentPos.distanceTo(this.targetPos) < 0.05) {
-          currentPos.copy(this.targetPos);
-          this.isMoving = false;
-          if (this.indicator) {
-            this.indicator.setAttribute('visible', 'false');
-          }
-        }
-      }
-    });
-
-    // ----------------------------------------------------
-    // Custom A-Frame Component: Multi-Hall Room Boundaries
-    // ----------------------------------------------------
-    AFRAME.registerComponent('room-boundary', {
-      init: function() {
-        this.lastX = this.el.object3D.position.x;
-        this.lastZ = this.el.object3D.position.z;
-      },
-      tick: function () {
-        const pos = this.el.object3D.position;
-        
-        // Clamp camera position to boundaries on tick
-        const clamped = window.clampToBoundaries ? window.clampToBoundaries(pos.x, pos.z) : { x: pos.x, z: pos.z };
-        pos.x = clamped.x;
-        pos.z = clamped.z;
-
-        this.lastX = pos.x;
-        this.lastZ = pos.z;
-      }
-    });
-
-    // ----------------------------------------------------
-    // Custom A-Frame Component: Distance-based Lazy Texture Loader
-    // Unloads textures from GPU memory when they are out of range to prevent phone OOM crashes.
-    // ----------------------------------------------------
-    AFRAME.registerComponent('dist-loader', {
-      schema: {
-        src: {type: 'string'},
-        distance: {type: 'number', default: 16}
-      },
-      init: function () {
-        this.rig = document.querySelector('#camera-rig');
-        this.loaded = false;
-        this.el.setAttribute('color', '#ffffff');
-        this.el.setAttribute('opacity', '0.05');
-      },
-      tick: function () {
-        const rigPos = this.rig.object3D.position;
-        const myPos = this.el.object3D.position;
-        
-        const dx = rigPos.x - myPos.x;
-        const dz = rigPos.z - myPos.z;
-        const distSq = dx * dx + dz * dz;
-        const loadDistSq = this.data.distance * this.data.distance;
-        
-        if (distSq < loadDistSq) {
-          if (!this.loaded) {
-            this.el.setAttribute('src', this.data.src);
-            this.el.setAttribute('opacity', '1.0');
-            this.loaded = true;
-          }
-        } else {
-          if (this.loaded) {
-            this.el.removeAttribute('src');
-            this.el.setAttribute('opacity', '0.05');
-            this.loaded = false;
-          }
-        }
-      }
-    });
-
-    // ----------------------------------------------------
-    // Custom A-Frame Component: Pointer Hover Feedback
-    // ----------------------------------------------------
-    AFRAME.registerComponent('cursor-feedback', {
-      init: function () {
-        this.el.addEventListener('mouseenter', () => {
-          document.body.style.cursor = 'pointer';
-        });
-        this.el.addEventListener('mouseleave', () => {
-          document.body.style.cursor = 'default';
-        });
-      }
-    });
-  </script>
 </head>
 <body>
 
-  <!-- 2D Overlay UI Entry Screen -->
-  <div id="overlay-ui">
-    <div class="glass-panel">
-      <h1 class="brand-title">Oleh Riabchenko</h1>
-      <div class="brand-subtitle">Photography Exhibition</div>
-      
-      <div class="instructions">
-        <h3>Exhibition Controls</h3>
-        <p><strong>Mobile:</strong> Rotate your phone to look around. Swipe <strong>UP / DOWN</strong> to walk, and <strong>LEFT / RIGHT</strong> to step sideways.</p>
-        <p><strong>Desktop:</strong> Click & drag to look around. Use <strong>W A S D</strong> or Arrow keys to walk. Click floor to teleport.</p>
-      </div>
+  <div class="bg"></div>
+  <div class="noise"></div>
 
-      <button id="btn-enter" class="btn-enter" onclick="requestAccess()">Enter Exhibition</button>
+  <!-- Floating particles -->
+  <div class="particles" id="particles"></div>
+
+  <main class="stage">
+    <div class="ring">
+      <span class="ring-icon">⟳</span>
     </div>
-  </div>
 
-  <!-- 2D HUD Control Bar -->
-  <div id="hud-overlay">
-    <div class="hud-text">Bloom Hall (Left) • Dopamine Hall (Right) • Swipe screen to walk • Tap picture to inspect</div>
-  </div>
+    <div class="eyebrow">Oleh Riabchenko</div>
+    <h1>3D Virtual Gallery</h1>
+    <p class="subtitle">Photography Exhibition</p>
 
-  <!-- Interactive 2D Metadata Modal -->
-  <div id="art-modal" onclick="closeModal(event)">
-    <div class="modal-card" onclick="event.stopPropagation()">
-      <div class="modal-img-container">
-        <img id="modal-img" src="" alt="Artwork Preview">
+    <div class="divider"></div>
+
+    <div class="status-card">
+      <div class="status-indicator">
+        <span class="dot"></span>
+        В процесі розробки
       </div>
-      <div class="modal-info">
-        <div class="modal-header">
-          <h2 id="modal-title" class="modal-title">Artwork Title</h2>
-          <div id="modal-artist" class="modal-meta">By Oleh Riabchenko, 2026</div>
-          <p id="modal-desc" class="modal-desc">Description of the artwork.</p>
-        </div>
-        <div class="modal-technical">
-          <div>Year: <span id="modal-year">2026</span></div>
-        </div>
-        <button class="btn-close" onclick="closeModal(null)">Return to Gallery</button>
-      </div>
+      <p class="status-text">
+        Сайт зараз оновлюється та готується до перезапуску.<br>
+        Незабаром ми повернемось із новим досвідом.
+      </p>
     </div>
-  </div>
+  </main>
 
-  <!-- 3D Scene (White Minimalist Space, WebXR Disabled by Default) -->
-  <a-scene loading-screen="dotsColor: #5c5c93; backgroundColor: #ffffff" renderer="antialias: true; colorManagement: true;">
-    
-    <!-- Camera Rig -->
-    <a-entity id="camera-rig" position="0 0 6" fps-wasd-controls="speed: 0.07; camera: #camera" swipe-movement-controls="speed: 2.5" teleport-handler="floorId: #floor; indicatorId: #teleport-indicator" room-boundary>
-      
-      <!-- Camera Entity -->
-      <a-entity id="camera" camera="near: 0.1; far: 100" position="0 1.6 0" look-controls="pointerLockEnabled: false; touchEnabled: false;">
-        <!-- Interactive Mouse Raycaster for Tap/Click mapping -->
-        <a-entity raycaster="objects: .teleportable, .interactable, .collidable; far: 25" cursor="rayOrigin: mouse"></a-entity>
-      </a-entity>
-      
-    </a-entity>
+  <div class="signature">© 2026 Oleh Riabchenko — Скоро повернемось</div>
 
-    <!-- Teleport indicator marker -->
-    <a-entity id="teleport-indicator" visible="false" position="0 0.02 0">
-      <a-ring rotation="-90 0 0" radius-inner="0.25" radius-outer="0.3" material="color: #5c5c93; shader: flat; transparent: true; opacity: 0.8"></a-ring>
-      <a-ring rotation="-90 0 0" radius-inner="0.05" radius-outer="0.1" material="color: #5c5c93; shader: flat; transparent: true; opacity: 0.9"></a-ring>
-    </a-entity>
-
-    <!-- Floor (Solid Pure White, sized to fit the corridors and foyer) -->
-    <a-plane id="floor" class="teleportable" rotation="-90 0 0" position="0 0 -256" width="30" height="540" material="color: #ffffff; roughness: 0.95; metalness: 0.05" cursor-feedback></a-plane>
-
-    <!-- Ceiling (Clean white, sized to fit the corridors and foyer) -->
-    <a-plane rotation="90 0 0" position="0 5 -256" width="30" height="540" material="color: #ffffff; roughness: 1; metalness: 0"></a-plane>
-
-    <!-- ----------------------------------------------------
-         EXHIBITION WALLS (Solid Pure White)
-         ---------------------------------------------------- -->
-    
-    <!-- Foyer Entrance Hall (X: -10 to 10, Z: 0 to 8) -->
-    <a-box id="foyer-wall-south" class="collidable" position="0 2.5 8.05" width="20" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
-    <a-box id="foyer-wall-west" class="collidable" position="-10.05 2.5 4" rotation="0 90 0" width="8" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
-    <a-box id="foyer-wall-east" class="collidable" position="10.05 2.5 4" rotation="0 90 0" width="8" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
-    <!-- Foyer North Wall with two doorways -->
-    <a-box id="foyer-wall-north-left" class="collidable" position="-9 2.5 -0.05" width="2" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
-    <a-box id="foyer-wall-north-center" class="collidable" position="0 2.5 -0.05" width="4" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
-    <a-box id="foyer-wall-north-right" class="collidable" position="9 2.5 -0.05" width="2" height="5" depth="0.1" material="color: #ffffff; roughness: 0.95; metalness: 0.05"></a-box>
-
-    <!-- Ambient & Hemisphere Lighting for soft natural 3D shading -->
-    <a-entity light="type: ambient; color: #ffffff; intensity: 0.4"></a-entity>
-    <a-entity light="type: hemisphere; color: #ffffff; groundColor: #cccccc; intensity: 0.6"></a-entity>
-    <a-entity light="type: directional; color: #ffffff; intensity: 0.3" position="3 7 4"></a-entity>
-
-
-
-    <!-- 3D Text Labels Floating at Hallways (Facing South towards player starting position) -->
-    <a-entity position="-5 3.8 -0.05" rotation="0 180 0">
-      <a-text value="BLOOM" align="center" width="8" color="#1d1d26" font="roboto" font-weight="bold"></a-text>
-    </a-entity>
-    <a-entity position="5 3.8 -0.05" rotation="0 180 0">
-      <a-text value="DOPAMINE" align="center" width="8" color="#1d1d26" font="roboto" font-weight="bold"></a-text>
-    </a-entity>
-
-    <!-- Dynamic Art Container -->
-    <a-entity id="paintings-container"></a-entity>
-
-  </a-scene>
-
-  <!-- ----------------------------------------------------
-       EXHIBITION METADATA DATABASE & DYNAMIC GENERATOR
-       ---------------------------------------------------- -->
   <script>
-    // Exact list of files discovered recursively in the user's Фото folder
-    const GALLERY_PHOTOS = {
-      "bloom": [
-        "1.jpg", "11.jpg", "12.jpg", "13.jpg", "14.jpg", "15.jpg", "16.jpg", "18.jpg",
-        "2.jpg", "3.jpg", "4.jpg", "5.jpg", "6.jpg", "7.jpg", "8.jpg", "Рябченко3.jpg"
-      ],
-      "dopamine": {
-        "1": ["DSC_0829-1.jpg", "DSC_0830-1.jpg", "DSC_0832-1.jpg", "DSC_0833-1.jpg", "DSC_0834-1.jpg", "DSC_0835-1.jpg"],
-        "2": [
-          "109.jpg", "111.jpg", "112.jpg", "116.jpg", "119.jpg", "121.jpg", "123.jpg", "124.jpg",
-          "125.jpg", "126.jpg", "131.jpg", "132.jpg", "133.jpg", "134.jpg", "135.jpg", "136.jpg",
-          "137.jpg", "138.jpg", "79.jpg", "84.jpg", "89.jpg", "90.jpg", "91.jpg", "93.jpg"
-        ],
-        "3": ["14.jpg", "18.jpg", "27.jpg", "29.jpg", "49.jpg", "52.jpg", "58.jpg", "59.jpg", "60.jpg", "63.jpg", "64.jpg"],
-        "4": ["122.jpg", "53.jpg", "67.jpg", "68.jpg", "72.jpg", "73.jpg", "75.jpg", "77.jpg", "78.jpg", "81.jpg", "83.jpg", "98.jpg"],
-        "5": ["108.jpg", "110.jpg", "127.jpg", "128.jpg", "129.jpg", "88.jpg", "92.jpg", "94.jpg", "95.jpg", "96.jpg"],
-        "6": ["100.jpg", "101.jpg", "103.jpg", "104.jpg", "113.jpg", "114.jpg", "115.jpg", "117.jpg", "118.jpg", "130.jpg", "97.jpg", "99.jpg"]
-      }
-    };
-
-    // Client-side text database populated from text files
-    const descriptions = {};
-
-    function loadDescriptions() {
-      const list = [
-        {key: 'bloom', file: 'descriptions/Квітнення.txt'},
-        {key: 'dopamine_1', file: 'descriptions/Дофамін_Група_1.txt'},
-        {key: 'dopamine_2', file: 'descriptions/Дофамін_Група_2.txt'},
-        {key: 'dopamine_3', file: 'descriptions/Дофамін_Група_3.txt'},
-        {key: 'dopamine_4', file: 'descriptions/Дофамін_Група_4.txt'},
-        {key: 'dopamine_5', file: 'descriptions/Дофамін_Група_5.txt'},
-        {key: 'dopamine_6', file: 'descriptions/Дофамін_Група_6.txt'},
-      ];
-      
-      list.forEach(item => {
-        fetch(item.file)
-          .then(res => res.text())
-          .then(text => {
-            descriptions[item.key] = text;
-          })
-          .catch(err => {
-            console.warn('Failed to load description:', item.file, err);
-            descriptions[item.key] = `Серія: ${item.key === 'bloom' ? 'Квітнення' : 'Дофамін, ' + item.key.split('_')[1] + ' група'}\nОпис знаходиться у файлі: ${item.file}`;
-          });
-      });
-    }
-
-    // Generate dynamic layout on DOMContentLoaded
-    window.addEventListener('DOMContentLoaded', () => {
-      const bloomPaths = GALLERY_PHOTOS.bloom.map(f => `assets/Квітнення/${f}`);
-      
-      const dopaminePaths = {};
-      Object.keys(GALLERY_PHOTOS.dopamine).forEach(gk => {
-        dopaminePaths[gk] = GALLERY_PHOTOS.dopamine[gk].map(f => `assets/Дофамін/${gk}/${f}`);
-      });
-
-      // Synchronously map aspect ratios (scanned beforehand, all are 0.8 except one 1.4972)
-      const arMap = {};
-      const IMAGE_ASPECT_RATIOS = {
-        "assets/Дофамін/2/116.jpg": 1.4972
-      };
-      
-      bloomPaths.forEach(src => {
-        arMap[src] = IMAGE_ASPECT_RATIOS[src] || 0.8;
-      });
-      Object.keys(dopaminePaths).forEach(gk => {
-        dopaminePaths[gk].forEach(src => {
-          arMap[src] = IMAGE_ASPECT_RATIOS[src] || 0.8;
-        });
-      });
-
-      // 1. Calculate Bloom anchors (1.5x width gap)
-      const bloomAnchorsList = [];
-      let lastZWest = -8;
-      let lastZEast = -8;
-      let bloomLastGap = 4.8; // default: 1.5 * 4.0 * 0.8
-      const bloomSidePhotos = bloomPaths.slice(0, 14);
-      const bloomNorthPhotos = bloomPaths.slice(14);
-
-      bloomSidePhotos.forEach((src, index) => {
-        const ar = arMap[src] || 1.0;
-        const w = 4.0 * ar;
-        const gap = 1.5 * w; // edge-to-edge gap is exactly 1.5x width
-        bloomLastGap = gap;
-        
-        if (index % 2 === 0) {
-          const z = lastZWest - w / 2;
-          bloomAnchorsList.push({ x: -9.95, y: 2.8, z, rot: "0 90 0", src, descKey: 'bloom', title: `BLOOM // WORK #${index + 1}` });
-          lastZWest = z - w / 2 - gap;
-        } else {
-          const z = lastZEast - w / 2;
-          bloomAnchorsList.push({ x: -0.15, y: 2.8, z, rot: "0 -90 0", src, descKey: 'bloom', title: `BLOOM // WORK #${index + 1}` });
-          lastZEast = z - w / 2 - gap;
-        }
-      });
-      
-      // bloomLastGap is now accessible — shorten the hall by pulling end wall closer
-      const bloomEnd = Math.min(lastZWest, lastZEast) + bloomLastGap - 2.0;
-
-      // Add the two North wall paintings (offset 5cm South of the wall, facing South rot 0 0 0)
-      if (bloomNorthPhotos.length > 0) {
-        bloomAnchorsList.push({
-          x: -3.3, y: 2.8, z: bloomEnd + 0.05, rot: "0 0 0",
-          src: bloomNorthPhotos[0], descKey: 'bloom', title: `BLOOM // WORK #15`
-        });
-      }
-      if (bloomNorthPhotos.length > 1) {
-        bloomAnchorsList.push({
-          x: -6.7, y: 2.8, z: bloomEnd + 0.05, rot: "0 0 0",
-          src: bloomNorthPhotos[1], descKey: 'bloom', title: `BLOOM // WORK #16`
-        });
-      }
-
-      // 2. Calculate Dopamine anchors split across 6 rooms
-      const dopamineAnchorsMap = {};
-      const dopamineRoomEnds = [];
-      let dividerStart = 0;
-      let dividerEnd = 0;
-
-      // Room 1 (Group 1)
-      let lastZ1E = -8;
-      let lastZ1W = -8;
-      dopamineAnchorsMap["1"] = [];
-      dopaminePaths["1"].forEach((src, index) => {
-        const ar = arMap[src] || 1.0;
-        const w = 4.0 * ar;
-        const gap = 1.5 * w;
-        if (index % 2 === 0) {
-          const z = lastZ1E - w / 2;
-          dopamineAnchorsMap["1"].push({ x: 9.95, y: 2.8, z, rot: "0 -90 0", src, descKey: 'dopamine_1', title: `DOPAMINE // GROUP 1 // WORK #${index + 1}` });
-          lastZ1E = z - w / 2 - gap;
-        } else {
-          const z = lastZ1W - w / 2;
-          dopamineAnchorsMap["1"].push({ x: 0.15, y: 2.8, z, rot: "0 90 0", src, descKey: 'dopamine_1', title: `DOPAMINE // GROUP 1 // WORK #${index + 1}` });
-          lastZ1W = z - w / 2 - gap;
-        }
-      });
-      const room1End = Math.min(lastZ1E, lastZ1W) - 4.0;
-      dopamineRoomEnds.push(room1End);
-
-      // Room 2 (Group 2) - 4 surfaces to fit 24 photos
-      dopamineAnchorsMap["2"] = [];
-      dividerStart = room1End - 3.0;
-      let lastZ2E = room1End - 4.0;
-      let lastZ2W = room1End - 4.0;
-      let lastZ2DivE = room1End - 4.0;
-      let lastZ2DivW = room1End - 4.0;
-      dopaminePaths["2"].forEach((src, index) => {
-        const ar = arMap[src] || 1.0;
-        const w = 4.0 * ar;
-        const gap = 1.5 * w;
-        const mode = index % 4;
-        if (mode === 0) {
-          const z = lastZ2E - w / 2;
-          dopamineAnchorsMap["2"].push({ x: 9.95, y: 2.8, z, rot: "0 -90 0", src, descKey: 'dopamine_2', title: `DOPAMINE // GROUP 2 // WORK #${index + 1}` });
-          lastZ2E = z - w / 2 - gap;
-        } else if (mode === 1) {
-          const z = lastZ2W - w / 2;
-          dopamineAnchorsMap["2"].push({ x: 0.15, y: 2.8, z, rot: "0 90 0", src, descKey: 'dopamine_2', title: `DOPAMINE // GROUP 2 // WORK #${index + 1}` });
-          lastZ2W = z - w / 2 - gap;
-        } else if (mode === 2) {
-          const z = lastZ2DivE - w / 2;
-          dopamineAnchorsMap["2"].push({ x: 5.10, y: 2.8, z, rot: "0 90 0", src, descKey: 'dopamine_2', title: `DOPAMINE // GROUP 2 // WORK #${index + 1}` });
-          lastZ2DivE = z - w / 2 - gap;
-        } else {
-          const z = lastZ2DivW - w / 2;
-          dopamineAnchorsMap["2"].push({ x: 4.90, y: 2.8, z, rot: "0 -90 0", src, descKey: 'dopamine_2', title: `DOPAMINE // GROUP 2 // WORK #${index + 1}` });
-          lastZ2DivW = z - w / 2 - gap;
-        }
-      });
-      const room2End = Math.min(lastZ2E, lastZ2W, lastZ2DivE, lastZ2DivW) - 4.0;
-      dividerEnd = room2End + 3.0;
-      dopamineRoomEnds.push(room2End);
-
-      // Room 3 (Group 3)
-      dopamineAnchorsMap["3"] = [];
-      let lastZ3E = room2End - 4.0;
-      let lastZ3W = room2End - 4.0;
-      dopaminePaths["3"].forEach((src, index) => {
-        const ar = arMap[src] || 1.0;
-        const w = 4.0 * ar;
-        const gap = 1.5 * w;
-        if (index % 2 === 0) {
-          const z = lastZ3E - w / 2;
-          dopamineAnchorsMap["3"].push({ x: 9.95, y: 2.8, z, rot: "0 -90 0", src, descKey: 'dopamine_3', title: `DOPAMINE // GROUP 3 // WORK #${index + 1}` });
-          lastZ3E = z - w / 2 - gap;
-        } else {
-          const z = lastZ3W - w / 2;
-          dopamineAnchorsMap["3"].push({ x: 0.15, y: 2.8, z, rot: "0 90 0", src, descKey: 'dopamine_3', title: `DOPAMINE // GROUP 3 // WORK #${index + 1}` });
-          lastZ3W = z - w / 2 - gap;
-        }
-      });
-      const room3End = Math.min(lastZ3E, lastZ3W) - 4.0;
-      dopamineRoomEnds.push(room3End);
-
-      // Room 4 (Group 4)
-      dopamineAnchorsMap["4"] = [];
-      let lastZ4E = room3End - 4.0;
-      let lastZ4W = room3End - 4.0;
-      dopaminePaths["4"].forEach((src, index) => {
-        const ar = arMap[src] || 1.0;
-        const w = 4.0 * ar;
-        const gap = 1.5 * w;
-        if (index % 2 === 0) {
-          const z = lastZ4E - w / 2;
-          dopamineAnchorsMap["4"].push({ x: 9.95, y: 2.8, z, rot: "0 -90 0", src, descKey: 'dopamine_4', title: `DOPAMINE // GROUP 4 // WORK #${index + 1}` });
-          lastZ4E = z - w / 2 - gap;
-        } else {
-          const z = lastZ4W - w / 2;
-          dopamineAnchorsMap["4"].push({ x: 0.15, y: 2.8, z, rot: "0 90 0", src, descKey: 'dopamine_4', title: `DOPAMINE // GROUP 4 // WORK #${index + 1}` });
-          lastZ4W = z - w / 2 - gap;
-        }
-      });
-      const room4End = Math.min(lastZ4E, lastZ4W) - 4.0;
-      dopamineRoomEnds.push(room4End);
-
-      // Room 5 (Group 5)
-      dopamineAnchorsMap["5"] = [];
-      let lastZ5E = room4End - 4.0;
-      let lastZ5W = room4End - 4.0;
-      dopaminePaths["5"].forEach((src, index) => {
-        const ar = arMap[src] || 1.0;
-        const w = 4.0 * ar;
-        const gap = 1.5 * w;
-        if (index % 2 === 0) {
-          const z = lastZ5E - w / 2;
-          dopamineAnchorsMap["5"].push({ x: 9.95, y: 2.8, z, rot: "0 -90 0", src, descKey: 'dopamine_5', title: `DOPAMINE // GROUP 5 // WORK #${index + 1}` });
-          lastZ5E = z - w / 2 - gap;
-        } else {
-          const z = lastZ5W - w / 2;
-          dopamineAnchorsMap["5"].push({ x: 0.15, y: 2.8, z, rot: "0 90 0", src, descKey: 'dopamine_5', title: `DOPAMINE // GROUP 5 // WORK #${index + 1}` });
-          lastZ5W = z - w / 2 - gap;
-        }
-      });
-      const room5End = Math.min(lastZ5E, lastZ5W) - 4.0;
-      dopamineRoomEnds.push(room5End);
-
-      // Room 6 (Group 6)
-      dopamineAnchorsMap["6"] = [];
-      let lastZ6E = room5End - 4.0;
-      let lastZ6W = room5End - 4.0;
-      const group6Photos = dopaminePaths["6"];
-      group6Photos.forEach((src, index) => {
-        const ar = arMap[src] || 1.0;
-        const w = 4.0 * ar;
-        const gap = 1.5 * w;
-        if (index < 10) {
-          if (index % 2 === 0) {
-            const z = lastZ6E - w / 2;
-            dopamineAnchorsMap["6"].push({ x: 9.95, y: 2.8, z, rot: "0 -90 0", src, descKey: 'dopamine_6', title: `DOPAMINE // GROUP 6 // WORK #${index + 1}` });
-            lastZ6E = z - w / 2 - gap;
-          } else {
-            const z = lastZ6W - w / 2;
-            dopamineAnchorsMap["6"].push({ x: 0.15, y: 2.8, z, rot: "0 90 0", src, descKey: 'dopamine_6', title: `DOPAMINE // GROUP 6 // WORK #${index + 1}` });
-            lastZ6W = z - w / 2 - gap;
-          }
-        }
-      });
-
-      const room6End = Math.min(lastZ6E, lastZ6W) - 6.0;
-      dopamineRoomEnds.push(room6End);
-
-      // Place remaining photos in Group 6 on the back wall (offset 5cm South, rot 0 0 180 to fix upside down orientation)
-      if (group6Photos.length > 10) {
-        const src10 = group6Photos[10];
-        dopamineAnchorsMap["6"].push({ x: 3.3, y: 2.8, z: room6End + 0.05, rot: "0 0 180", src: src10, descKey: 'dopamine_6', title: `DOPAMINE // GROUP 6 // WORK #11` });
-      }
-      if (group6Photos.length > 11) {
-        const src11 = group6Photos[11];
-        dopamineAnchorsMap["6"].push({ x: 6.7, y: 2.8, z: room6End + 0.05, rot: "0 0 180", src: src11, descKey: 'dopamine_6', title: `DOPAMINE // GROUP 6 // WORK #12` });
-      }
-
-      // Set global boundaries
-      window.galleryBoundaries = {
-        bloomEnd,
-        roomEnds: dopamineRoomEnds,
-        dividerStart,
-        dividerEnd
-      };
-
-      // Create Walls Dynamically
-      const sceneEl = document.querySelector('a-scene');
-
-      // Bloom walls
-      createBoxWall(sceneEl, 'bloom-west', -10.05, bloomEnd / 2, 0.1, 5, Math.abs(bloomEnd), 0);
-      createBoxWall(sceneEl, 'bloom-east', -0.05, bloomEnd / 2, 0.1, 5, Math.abs(bloomEnd), 0);
-      createBoxWall(sceneEl, 'bloom-north', -5, bloomEnd - 0.05, 10, 5, 0.1, 0);
-
-      // Dopamine walls
-      const dopamineEnd = room6End;
-      createBoxWall(sceneEl, 'dopamine-west', 0.05, dopamineEnd / 2, 0.1, 5, Math.abs(dopamineEnd), 0);
-      createBoxWall(sceneEl, 'dopamine-east', 10.05, dopamineEnd / 2, 0.1, 5, Math.abs(dopamineEnd), 0);
-      createBoxWall(sceneEl, 'dopamine-north', 5, dopamineEnd - 0.05, 10, 5, 0.1, 0);
-
-      // Dopamine internal partitions
-      dopamineRoomEnds.forEach((pZ, rIdx) => {
-        if (rIdx < 5) {
-          createBoxWall(sceneEl, null, 1.75, pZ, 3.5, 5, 0.1, 0);
-          createBoxWall(sceneEl, null, 8.25, pZ, 3.5, 5, 0.1, 0);
-        }
-      });
-
-      // Room 2 center divider
-      createBoxWall(sceneEl, 'dopamine-divider', 5, (dividerStart + dividerEnd) / 2, 0.1, 5, Math.abs(dividerEnd - dividerStart), 0);
-
-      // Build dynamic HTML entities
-      loadDescriptions();
-      const container = document.getElementById('paintings-container');
-
-      // Generate Bloom paintings
-      bloomAnchorsList.forEach(anch => {
-        const entity = createDynamicPaintingEntity(anch, arMap[anch.src]);
-        container.appendChild(entity);
-      });
-
-      // Generate Dopamine paintings
-      Object.keys(dopamineAnchorsMap).forEach(gk => {
-        dopamineAnchorsMap[gk].forEach(anch => {
-          const entity = createDynamicPaintingEntity(anch, arMap[anch.src]);
-          container.appendChild(entity);
-        });
-      });
-
-      // Stop touch event propagation inside .modal-card to allow normal mobile one-finger scrolling
-      const card = document.querySelector('.modal-card');
-      if (card) {
-        const stopProp = (e) => {
-          e.stopPropagation();
-        };
-        card.addEventListener('touchstart', stopProp, {passive: true});
-        card.addEventListener('touchmove', stopProp, {passive: true});
-        card.addEventListener('touchend', stopProp, {passive: true});
-      }
-    });
-
-    function createBoxWall(sceneEl, id, x, z, w, h, d, rotY) {
-      const el = document.createElement('a-box');
-      if (id) el.setAttribute('id', id);
-      el.setAttribute('class', 'collidable');
-      el.setAttribute('position', `${x} ${h/2} ${z}`);
-      el.setAttribute('rotation', `0 ${rotY} 0`);
-      el.setAttribute('width', w);
-      el.setAttribute('height', h);
-      el.setAttribute('depth', d);
-      el.setAttribute('material', 'color: #ffffff; roughness: 0.95; metalness: 0.05');
-      sceneEl.appendChild(el);
-    }
-
-    function createDynamicPaintingEntity(anch, ar) {
-      const el = document.createElement('a-image');
-      el.setAttribute('class', 'interactable');
-      el.setAttribute('cursor-feedback', '');
-      el.setAttribute('position', `${anch.x} ${anch.y} ${anch.z}`);
-      el.setAttribute('rotation', anch.rot);
-      el.setAttribute('height', '4.0');
-      
-      const width = 4.0 * (ar || 1.0);
-      el.setAttribute('width', width);
-
-      el.setAttribute('dist-loader', `src: ${anch.src}; distance: 16`);
-
-      el.addEventListener('click', () => {
-        if (window.isDragging) return;
-        openArtwork(anch.title, anch.src, anch.descKey);
-      });
-
-      return el;
-    }
-
-    // Detect if gyroscope is active; fallback to touch-drag look controls if not
-    let orientationReceived = false;
-    function sensorCheck(e) {
-      if (e.alpha !== null || e.beta !== null || e.gamma !== null) {
-        orientationReceived = true;
-        window.removeEventListener('deviceorientation', sensorCheck);
-      }
-    }
-    window.addEventListener('deviceorientation', sensorCheck);
-
-    function enableTouchFallbackIfNoGyro() {
-      setTimeout(() => {
-        if (!orientationReceived) {
-          console.log("No gyroscope events detected. Enabling touch controls fallback.");
-          const cameraEl = document.getElementById('camera');
-          if (cameraEl) {
-            cameraEl.setAttribute('look-controls', 'pointerLockEnabled: false; touchEnabled: true;');
-          }
-        }
-      }, 1500);
-    }
-
-    // Device Permission Request Flow
-    function requestAccess() {
-      const overlay = document.getElementById('overlay-ui');
-      const hud = document.getElementById('hud-overlay');
-
-      function hideOverlay() {
-        overlay.classList.add('fade-out');
-        setTimeout(() => {
-          overlay.style.display = 'none';
-          hud.classList.add('visible');
-        }, 800);
-        enableTouchFallbackIfNoGyro();
-      }
-
-      // Check if iOS DeviceOrientation request is needed
-      if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-        DeviceOrientationEvent.requestPermission()
-          .then(permissionState => {
-            if (permissionState === 'granted') {
-              console.log("DeviceOrientation sensor access granted.");
-            } else {
-              console.warn("DeviceOrientation access denied. Falling back to mouse controls.");
-            }
-            hideOverlay();
-          })
-          .catch(error => {
-            console.error("DeviceOrientation request error:", error);
-            hideOverlay(); // Fallback anyway
-          });
-      } else {
-        // Desktop or Android Chrome
-        hideOverlay();
-      }
-    }
-
-    // Open Interactive Modal
-    function openArtwork(title, src, descKey) {
-      const desc = descriptions[descKey] || "Опис завантажується...";
-      
-      document.getElementById('modal-img').src = src;
-      document.getElementById('modal-title').textContent = title;
-      document.getElementById('modal-desc').textContent = desc;
-      document.getElementById('modal-year').textContent = "2026"; // Year of creation
-
-      document.getElementById('art-modal').classList.add('active');
-    }
-
-    // Close Modal
-    function closeModal(evt) {
-      if (evt && evt.target !== document.getElementById('art-modal')) return;
-      document.getElementById('art-modal').classList.remove('active');
+    // Generate floating particles
+    const container = document.getElementById('particles');
+    for (let i = 0; i < 25; i++) {
+      const p = document.createElement('div');
+      p.className = 'particle';
+      const size = Math.random() * 3 + 1;
+      p.style.cssText = `
+        width: ${size}px;
+        height: ${size}px;
+        left: ${Math.random() * 100}%;
+        animation-duration: ${Math.random() * 12 + 10}s;
+        animation-delay: ${Math.random() * 15}s;
+        opacity: ${Math.random() * 0.5 + 0.2};
+      `;
+      container.appendChild(p);
     }
   </script>
+
 </body>
 </html>
