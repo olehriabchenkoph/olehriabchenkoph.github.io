@@ -488,6 +488,26 @@
     document.getElementById('lb-img').addEventListener('click', e => e.stopPropagation());
 
     // ─────────────────────────────────────────
+    // ─────────────────────────────────────────
+    // Natural numeric sort for filenames like 0.1.jpg, 0.10.jpg, 1.jpg, 108.jpg
+    // Splits name by ".", compares each segment as integer:
+    //   0.1 → [0,1], 0.10 → [0,10], 1 → [1], 108 → [108]
+    // Result: 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.10, 1, 2, 3 … 108 …
+    // ─────────────────────────────────────────
+    function photoKey(f) {
+      return f.replace(/\.jpg$/i, '').split('.').map(Number);
+    }
+    function comparePhotos(a, b) {
+      const ak = photoKey(a), bk = photoKey(b);
+      for (let i = 0; i < Math.max(ak.length, bk.length); i++) {
+        const d = (ak[i] ?? -1) - (bk[i] ?? -1);
+        if (d !== 0) return d;
+      }
+      return 0;
+    }
+    PHOTOS.sort(comparePhotos);
+
+    // ─────────────────────────────────────────
     // Build photo grid
     // ─────────────────────────────────────────
     function buildGrid() {
