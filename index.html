@@ -3,8 +3,59 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Oleh Riabchenko</title>
-  <meta name="description" content="Photography portfolio of Oleh Riabchenko — visual artist from Ukraine.">
+  <title>Oleh Riabchenko — Photographer &amp; Visual Artist | New Photography</title>
+  <meta name="description" content="Portfolio of Oleh Riabchenko — Ukrainian photographer and visual artist. Long-exposure experimental photography exploring time, light, and digital deconstruction.">
+
+  <!-- Canonical -->
+  <link rel="canonical" href="https://olehriabchenko.com/">
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://olehriabchenko.com/">
+  <meta property="og:title" content="Oleh Riabchenko — Photographer &amp; Visual Artist">
+  <meta property="og:description" content="Ukrainian photographer and visual artist working with long exposures, camera movement, and deep digital intervention. Based in Ivano-Frankivsk.">
+  <meta property="og:image" content="https://olehriabchenko.com/photos/1.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:locale" content="en_US">
+  <meta property="og:locale:alternate" content="uk_UA">
+  <meta property="og:site_name" content="Oleh Riabchenko">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Oleh Riabchenko — Photographer &amp; Visual Artist">
+  <meta name="twitter:description" content="Ukrainian photographer working with long exposures, camera movement, and deep digital intervention.">
+  <meta name="twitter:image" content="https://olehriabchenko.com/photos/1.jpg">
+
+  <!-- JSON-LD Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    "name": "Oleh Riabchenko",
+    "alternateName": "Олег Рябченко",
+    "url": "https://olehriabchenko.com",
+    "image": "https://olehriabchenko.com/photos/1.jpg",
+    "description": "Ukrainian photographer and visual artist. Works with long exposures, camera movement, and deep digital intervention. Based in Ivano-Frankivsk.",
+    "jobTitle": "Photographer & Visual Artist",
+    "nationality": "Ukrainian",
+    "homeLocation": {
+      "@type": "Place",
+      "name": "Ivano-Frankivsk, Ukraine"
+    },
+    "alumniOf": {
+      "@type": "EducationalOrganization",
+      "name": "Kharkiv State Academy of Culture"
+    },
+    "memberOf": {
+      "@type": "Organization",
+      "name": "National Union of Artists of Ukraine"
+    },
+    "sameAs": [
+      "https://www.instagram.com/_riabchenkoo/"
+    ]
+  }
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@200;300;400;600&display=swap" rel="stylesheet">
@@ -463,6 +514,22 @@
 
   </main>
 
+  <!-- Static content for search engine crawlers (noscript fallback) -->
+  <noscript>
+    <div style="display:none">
+      <h1>Oleh Riabchenko — Photographer &amp; Visual Artist</h1>
+      <h2>About</h2>
+      <p>I am a photographer and visual artist. I am originally from Kharkiv, but now I live and work in Ivano-Frankivsk. I am currently studying audio-visual arts and photography at the Kharkiv State Academy of Culture. Parallel to my studies, I work as a documentary photographer at the local branch of the National Union of Artists of Ukraine, where I photograph exhibition openings and cultural events.</p>
+      <p>My personal artistic practice is built around the deconstruction of traditional photography. I work primarily with long exposures, camera movement, and deep digital intervention, testing the physical and digital limits of the medium. My background in music production directly influences my visual approach. By rejecting standard optical rules, I focus my work on pure emotions, the passage of time, and the mechanics of image creation itself.</p>
+      <h2>New Photography</h2>
+      <p>This series of images is a visual archive of my search for a photographic language: deconstructing traditional photography, seeking new impressions from the shooting process, and processing the resulting material.</p>
+      <p>The project is based on rejecting standard shooting rules, embracing moderate randomness, impressions, and completely immersing myself in my feelings. It prompts reflection on time, the self, power, music, and enjoying the moment.</p>
+      <p>At the end of 2023, while I was in Kharkiv, I stood on the balcony of my apartment and painted with light. Using a long exposure, I captured the headlights of cars, street lamps, and the light from the apartments in the building across the street. I was amazed by the result. It felt as if I had discovered a new kind of photography for myself.</p>
+      <p>In 2025, after moving to Ivano-Frankivsk, I renewed my interest in this new photography. I work primarily handheld with long exposures using ND filters and stopped-down apertures, in aperture priority, manual, and BULB modes.</p>
+      <p>My works are open to interpretation. In them, you can see and hear what you are thinking about, or things you previously did not know.</p>
+    </div>
+  </noscript>
+
   <!-- Lightbox -->
   <div id="lightbox" onclick="closeLb()">
     <button id="lb-close" onclick="closeLb()">×</button>
@@ -653,7 +720,9 @@
 
         const img = document.createElement('img');
         img.src = 'photos/' + file;
-        img.alt = '';
+        // Generate descriptive alt text from filename for SEO
+        const baseName = file.replace(/\.[^.]+$/, '');
+        img.alt = `Oleh Riabchenko — New Photography, photo ${baseName} — long exposure experimental art`;
         img.loading = 'lazy';
         img.decoding = 'async';
 
