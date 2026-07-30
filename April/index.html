@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Oleh Riabchenko — April / Квітень | Photography Series</title>
+  <meta name="description" content="April — a photography series by Oleh Riabchenko. Observations of spring tree blossoms as figures performing their final, most expressive dance.">
+
+  <!-- Canonical -->
+  <link rel="canonical" href="https://olehriabchenko.com/April/">
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://olehriabchenko.com/April/">
+  <meta property="og:title" content="Oleh Riabchenko — April / Квітень">
+  <meta property="og:description" content="Observations of spring tree blossoms as figures performing their final, most expressive dance, as if in despair.">
+  <meta property="og:image" content="https://olehriabchenko.com/April/photos_april_web/0.jpg">
+  <meta property="og:locale" content="en_US">
+  <meta property="og:locale:alternate" content="uk_UA">
+  <meta property="og:site_name" content="Oleh Riabchenko">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Oleh Riabchenko — April / Квітень">
+  <meta name="twitter:description" content="Observations of spring tree blossoms as figures performing their final, most expressive dance.">
+  <meta name="twitter:image" content="https://olehriabchenko.com/April/photos_april_web/0.jpg">
+
+  <!-- JSON-LD Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "ImageGallery",
+    "name": "April",
+    "description": "A photography series by Oleh Riabchenko observing spring tree blossoms.",
+    "url": "https://olehriabchenko.com/April/",
+    "author": {
+      "@type": "Person",
+      "name": "Oleh Riabchenko",
+      "url": "https://olehriabchenko.com"
+    }
+  }
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@200;300;400;600&display=swap" rel="stylesheet">
+
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: #fafafa;
+      color: #111;
+      min-height: 100vh;
+    }
+
+    /* ── Navigation ── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 200;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 48px;
+      height: 64px;
+      background: rgba(250, 250, 250, 0.92);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(0,0,0,0.07);
+    }
+
+    .nav-brand {
+      font-size: 0.85rem;
+      font-weight: 300;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: #111;
+      text-decoration: none;
+      cursor: pointer;
+      user-select: none;
+      white-space: nowrap;
+    }
+
+    .nav-center {
+      display: flex;
+      align-items: center;
+      gap: 36px;
+    }
+
+    .nav-link {
+      font-size: 0.75rem;
+      font-weight: 400;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #888;
+      text-decoration: none;
+      cursor: pointer;
+      user-select: none;
+      padding-bottom: 3px;
+      border-bottom: 1px solid transparent;
+      transition: color 0.2s, border-color 0.2s;
+      white-space: nowrap;
+    }
+
+    .nav-link:hover { color: #111; }
+    .nav-link.active { color: #111; border-bottom-color: #111; }
+
+    .lang-toggle {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+    }
+
+    .lang-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 5px 8px;
+      font-size: 0.72rem;
+      font-family: 'Outfit', sans-serif;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #aaa;
+      transition: color 0.2s;
+      line-height: 1;
+    }
+
+    .lang-btn.active { color: #111; font-weight: 600; }
+    .lang-sep { color: #ccc; font-size: 0.7rem; pointer-events: none; }
+
+    /* ── Hamburger ── */
+    .hamburger {
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      gap: 5px;
+      cursor: pointer;
+      background: none;
+      border: none;
+      padding: 8px;
+      margin-left: auto;
+    }
+
+    .hamburger span {
+      display: block;
+      width: 22px;
+      height: 1.5px;
+      background: #111;
+      transition: transform 0.25s ease, opacity 0.2s ease;
+      transform-origin: center;
+    }
+
+    .hamburger.open span:nth-child(1) { transform: translateY(6.5px) rotate(45deg); }
+    .hamburger.open span:nth-child(2) { opacity: 0; transform: scaleX(0); }
+    .hamburger.open span:nth-child(3) { transform: translateY(-6.5px) rotate(-45deg); }
+
+    /* ── Mobile menu ── */
+    .mobile-menu {
+      display: none;
+      position: fixed;
+      top: 64px; left: 0; right: 0;
+      z-index: 190;
+      background: rgba(250, 250, 250, 0.97);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(0,0,0,0.07);
+      flex-direction: column;
+      padding: 28px 24px 36px;
+      gap: 0;
+    }
+
+    .mobile-menu.open {
+      display: flex;
+      animation: slideDown 0.22s cubic-bezier(0.25,0.46,0.45,0.94) both;
+    }
+
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .m-link {
+      font-size: 0.9rem;
+      font-weight: 300;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #888;
+      text-decoration: none;
+      cursor: pointer;
+      padding: 14px 0;
+      border-bottom: 1px solid rgba(0,0,0,0.06);
+      transition: color 0.2s;
+    }
+
+    .m-link:last-of-type { border-bottom: none; }
+    .m-link:hover, .m-link.active { color: #111; }
+
+    .m-lang {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      padding-top: 20px;
+    }
+
+    .m-lang-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 5px 8px;
+      font-size: 0.75rem;
+      font-family: 'Outfit', sans-serif;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #aaa;
+      transition: color 0.2s;
+    }
+
+    .m-lang-btn.active { color: #111; font-weight: 600; }
+
+    /* ── Page animation ── */
+    @keyframes pageIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Main layout ── */
+    main { padding-top: 64px; }
+
+    .page-wrap {
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: 0 48px 120px;
+      animation: pageIn 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+    }
+
+    /* ── Hero section ── */
+    .hero {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+      min-height: calc(100vh - 64px);
+      align-items: stretch;
+    }
+
+    .hero-image-col {
+      position: relative;
+      overflow: hidden;
+      cursor: zoom-in;
+    }
+
+    .hero-image-col img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center top;
+      display: block;
+      transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+
+    .hero-image-col:hover img {
+      transform: scale(1.03);
+    }
+
+    .hero-text-col {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 80px 64px;
+    }
+
+    .series-label {
+      font-size: 0.7rem;
+      font-weight: 400;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: #aaa;
+      margin-bottom: 28px;
+    }
+
+    .series-title {
+      font-size: clamp(2.8rem, 5vw, 5rem);
+      font-weight: 200;
+      letter-spacing: 0.04em;
+      line-height: 1.05;
+      color: #111;
+      margin-bottom: 16px;
+    }
+
+    .series-title-sub {
+      font-size: clamp(1rem, 2vw, 1.4rem);
+      font-weight: 200;
+      letter-spacing: 0.12em;
+      color: #bbb;
+      margin-bottom: 52px;
+    }
+
+    .series-text {
+      font-size: 0.97rem;
+      line-height: 1.88;
+      color: #555;
+      font-weight: 300;
+      max-width: 520px;
+    }
+
+    .series-text p + p { margin-top: 18px; }
+
+    .scroll-hint {
+      margin-top: 56px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: #bbb;
+      font-size: 0.72rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+    }
+
+    .scroll-hint-line {
+      width: 40px;
+      height: 1px;
+      background: #ddd;
+    }
+
+    /* ── Gallery section ── */
+    .gallery-section { padding-top: 80px; }
+
+    .gallery-count {
+      font-size: 0.7rem;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: #bbb;
+      margin-bottom: 36px;
+      font-weight: 300;
+    }
+
+    /* ── Masonry-like grid (CSS columns) ── */
+    .photo-grid {
+      columns: 3;
+      column-gap: 6px;
+    }
+
+    .photo-grid-item {
+      break-inside: avoid;
+      margin-bottom: 6px;
+      overflow: hidden;
+      cursor: zoom-in;
+      background: #e8e8e8;
+      display: block;
+      position: relative;
+    }
+
+    .photo-grid-item img {
+      width: 100%;
+      height: auto;
+      display: block;
+      transition: transform 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+                  opacity 0.3s;
+    }
+
+    .photo-grid-item:hover img { transform: scale(1.04); }
+
+    /* ── Lightbox ── */
+    #lightbox {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      background: rgba(255, 255, 255, 0.97);
+      align-items: center;
+      justify-content: center;
+    }
+
+    #lightbox.open {
+      display: flex;
+      animation: lbIn 0.2s ease both;
+    }
+
+    @keyframes lbIn {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+
+    #lb-img {
+      max-width: 88vw;
+      max-height: 92vh;
+      object-fit: contain;
+      display: block;
+      box-shadow: 0 24px 80px rgba(0,0,0,0.15);
+      cursor: default;
+    }
+
+    #lb-close {
+      position: fixed;
+      top: 20px;
+      right: 28px;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: rgba(0,0,0,0.45);
+      font-size: 1.8rem;
+      cursor: pointer;
+      background: none;
+      border: none;
+      line-height: 1;
+      transition: color 0.2s;
+      font-family: 'Outfit', sans-serif;
+      font-weight: 200;
+    }
+
+    #lb-close:hover { color: #000; }
+
+    .lb-arrow {
+      position: fixed;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 16px;
+      color: rgba(0,0,0,0.3);
+      font-size: 2rem;
+      font-family: 'Outfit', sans-serif;
+      font-weight: 200;
+      line-height: 1;
+      transition: color 0.2s;
+      z-index: 1001;
+      user-select: none;
+    }
+
+    .lb-arrow:hover { color: #111; }
+    #lb-prev { left: 16px; }
+    #lb-next { right: 72px; }
+
+    #lb-counter {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 0.7rem;
+      letter-spacing: 0.2em;
+      color: #bbb;
+      font-family: 'Outfit', sans-serif;
+      pointer-events: none;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 1100px) {
+      .hero { grid-template-columns: 1fr; min-height: auto; }
+      .hero-image-col { height: 65vw; min-height: 400px; }
+      .hero-text-col { padding: 56px 40px; }
+      .photo-grid { columns: 2; }
+    }
+
+    @media (max-width: 700px) {
+      nav { padding: 0 20px; }
+      .nav-brand { font-size: 0.75rem; letter-spacing: 0.12em; }
+      .nav-center { display: none; }
+      .lang-toggle { display: none; }
+      .hamburger { display: flex; }
+      .page-wrap { padding: 0 16px 80px; }
+      .hero-text-col { padding: 40px 20px; }
+      .series-title { font-size: 2.8rem; }
+      .photo-grid { columns: 1; }
+      #lb-prev { left: 4px; }
+      #lb-next { right: 52px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navigation -->
+  <nav>
+    <a class="nav-brand" href="../index.html">Oleh Riabchenko</a>
+
+    <div class="nav-center">
+      <a class="nav-link" id="nav-about" href="../index.html">About</a>
+      <a class="nav-link" id="nav-new-photo" href="../index.html">New Photography</a>
+      <span class="nav-link active" id="nav-april">April</span>
+    </div>
+
+    <div class="lang-toggle">
+      <button class="lang-btn" id="btn-en" onclick="setLang('en')">EN</button>
+      <span class="lang-sep">|</span>
+      <button class="lang-btn" id="btn-uk" onclick="setLang('uk')">UK</button>
+    </div>
+
+    <button class="hamburger" id="hamburger" onclick="toggleMenu()" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </nav>
+
+  <!-- Mobile menu -->
+  <div class="mobile-menu" id="mobile-menu">
+    <a class="m-link" href="../index.html">About</a>
+    <a class="m-link" href="../index.html">New Photography</a>
+    <span class="m-link active" id="m-nav-april">April</span>
+    <div class="m-lang">
+      <button class="m-lang-btn" id="m-btn-en" onclick="setLang('en')">EN</button>
+      <span class="lang-sep">|</span>
+      <button class="m-lang-btn" id="m-btn-uk" onclick="setLang('uk')">UK</button>
+    </div>
+  </div>
+
+  <main>
+    <div class="page-wrap">
+
+      <!-- Hero: main photo + text -->
+      <section class="hero">
+        <div class="hero-image-col" onclick="openLb(0)" id="hero-img-wrap">
+          <img src="photos_april_web/0.jpg"
+               alt="Oleh Riabchenko — April, spring blossoms, main photograph"
+               loading="eager">
+        </div>
+        <div class="hero-text-col">
+          <div class="series-label" id="label-series">Series</div>
+          <h1 class="series-title" id="series-title">April</h1>
+          <div class="series-title-sub" id="series-subtitle">Квітень</div>
+          <div class="series-text" id="series-text"></div>
+          <div class="scroll-hint">
+            <span class="scroll-hint-line"></span>
+            <span id="scroll-hint-text">Scroll to explore</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Photo grid (remaining 12 photos) -->
+      <section class="gallery-section">
+        <div class="gallery-count" id="gallery-count">12 photographs</div>
+        <div class="photo-grid" id="photo-grid"></div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- Lightbox -->
+  <div id="lightbox" onclick="lbBgClick(event)">
+    <button id="lb-close" onclick="closeLb()">&#215;</button>
+    <button class="lb-arrow" id="lb-prev" onclick="lbNav(-1)">&#8249;</button>
+    <img id="lb-img" src="" alt="">
+    <button class="lb-arrow" id="lb-next" onclick="lbNav(1)">&#8250;</button>
+    <div id="lb-counter"></div>
+  </div>
+
+  <script>
+    // ─────────────────────────────────────────
+    // Content (bilingual)
+    // ─────────────────────────────────────────
+    const T = {
+      en: {
+        navAbout: 'About',
+        navNewPhoto: 'New Photography',
+        navApril: 'April',
+        labelSeries: 'Series',
+        seriesTitle: 'April',
+        seriesSubtitle: 'Kviten\'',
+        scrollHint: 'Scroll to explore',
+        galleryCount: '12 photographs',
+        text: [
+          'These photographs are the result of my observation of spring tree blossoms. In them, I saw figures performing their final, most expressive dance, as if in despair.',
+          'This series reminds me of portraits of people who have realized the inevitability of their own end. Those who have accepted reality and are living their final minutes — perhaps vividly, or perhaps with fear. We will never know, but we continue to look at them as strong individuals. We admire them and mentally compare ourselves to them.',
+          'The flowers in these frames have long since turned into fruit, which eventually vanished as well. But, every year in April, they will appear again to perform their dance as if for the very last time.'
+        ]
+      },
+      uk: {
+        navAbout: 'Про мене',
+        navNewPhoto: 'Нова фотографія',
+        navApril: 'Квітень',
+        labelSeries: 'Серія',
+        seriesTitle: 'Квітень',
+        seriesSubtitle: 'April',
+        scrollHint: 'Гортати далі',
+        galleryCount: '12 фотографій',
+        text: [
+          'Ці фотографії — результат мого спостереження за весняним цвітінням дерев. У ньому я побачив образи, які ніби у відчаї виконують свій останній, найвиразніший танець.',
+          'Ця серія нагадує мені портрети людей, які усвідомили неминучість власного кінця. Тих, хто прийняв реальність і проживає свої останні хвилини — можливо, яскраво, а можливо, зі страхом. Ми цього ніколи не дізнаємось, але продовжуємо дивитися на них як на сильних особистостей. Ми пишаємося ними та подумки порівнюємо себе з ними.',
+          'Квіти з цих кадрів давно стали плодами, які згодом також зникли. Проте щороку у квітні вони з\'являтимуться знову, щоб виконати свій танець так, ніби роблять це востаннє.'
+        ]
+      }
+    };
+
+    // All 13 photos: 0 is hero, 1-12 go in grid
+    const PHOTOS = [
+      '0.jpg','1.jpg','2.jpg','7.jpg','11.jpg','12.jpg',
+      '13.jpg','15.jpg','16.jpg','17.jpg','18.jpg','19.jpg','20.jpg'
+    ];
+
+    const GRID_PHOTOS = PHOTOS.slice(1);
+
+    // ─────────────────────────────────────────
+    // State
+    // ─────────────────────────────────────────
+    let lang = 'en';
+    let lbIndex = 0;
+
+    // ─────────────────────────────────────────
+    // Language
+    // ─────────────────────────────────────────
+    function setLang(l) {
+      lang = l;
+      const c = T[l];
+
+      document.documentElement.lang = l === 'uk' ? 'uk' : 'en';
+
+      document.getElementById('nav-about').textContent = c.navAbout;
+      document.getElementById('nav-new-photo').textContent = c.navNewPhoto;
+      document.getElementById('nav-april').textContent = c.navApril;
+      document.getElementById('m-nav-april').textContent = c.navApril;
+      document.getElementById('label-series').textContent = c.labelSeries;
+      document.getElementById('series-title').textContent = c.seriesTitle;
+      document.getElementById('series-subtitle').textContent = c.seriesSubtitle;
+      document.getElementById('scroll-hint-text').textContent = c.scrollHint;
+      document.getElementById('gallery-count').textContent = c.galleryCount;
+
+      document.getElementById('series-text').innerHTML =
+        c.text.map(function(p) { return '<p>' + p + '</p>'; }).join('');
+
+      document.getElementById('btn-en').classList.toggle('active', l === 'en');
+      document.getElementById('btn-uk').classList.toggle('active', l === 'uk');
+      document.getElementById('m-btn-en').classList.toggle('active', l === 'en');
+      document.getElementById('m-btn-uk').classList.toggle('active', l === 'uk');
+
+      closeMenu();
+    }
+
+    // ─────────────────────────────────────────
+    // Mobile menu
+    // ─────────────────────────────────────────
+    function toggleMenu() {
+      var menu = document.getElementById('mobile-menu');
+      var btn  = document.getElementById('hamburger');
+      var isOpen = menu.classList.contains('open');
+      menu.classList.toggle('open', !isOpen);
+      btn.classList.toggle('open', !isOpen);
+    }
+
+    function closeMenu() {
+      document.getElementById('mobile-menu').classList.remove('open');
+      document.getElementById('hamburger').classList.remove('open');
+    }
+
+    // ─────────────────────────────────────────
+    // Lightbox
+    // ─────────────────────────────────────────
+    function openLb(index) {
+      lbIndex = index;
+      updateLb();
+      document.getElementById('lightbox').classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function updateLb() {
+      var file = PHOTOS[lbIndex];
+      var lbImg = document.getElementById('lb-img');
+      lbImg.src = 'photos_april_web/' + file;
+      lbImg.alt = 'Oleh Riabchenko — April, photograph ' + (lbIndex + 1);
+      document.getElementById('lb-counter').textContent =
+        (lbIndex + 1) + ' / ' + PHOTOS.length;
+    }
+
+    function lbNav(dir) {
+      lbIndex = (lbIndex + dir + PHOTOS.length) % PHOTOS.length;
+      updateLb();
+    }
+
+    function closeLb() {
+      document.getElementById('lightbox').classList.remove('open');
+      document.body.style.overflow = '';
+    }
+
+    function lbBgClick(e) {
+      if (e.target === document.getElementById('lightbox')) closeLb();
+    }
+
+    document.addEventListener('keydown', function(e) {
+      if (!document.getElementById('lightbox').classList.contains('open')) return;
+      if (e.key === 'Escape') closeLb();
+      if (e.key === 'ArrowLeft')  lbNav(-1);
+      if (e.key === 'ArrowRight') lbNav(1);
+    });
+
+    // ─────────────────────────────────────────
+    // Build grid (photos 1-12)
+    // ─────────────────────────────────────────
+    function buildGrid() {
+      var grid = document.getElementById('photo-grid');
+      GRID_PHOTOS.forEach(function(file, i) {
+        var photoIndex = i + 1;
+
+        var wrap = document.createElement('div');
+        wrap.className = 'photo-grid-item';
+
+        var img = document.createElement('img');
+        img.src = 'photos_april_web/' + file;
+        img.alt = 'Oleh Riabchenko — April series, photograph ' + (photoIndex + 1);
+        img.loading = 'lazy';
+        img.decoding = 'async';
+        img.onerror = function() { wrap.style.display = 'none'; };
+
+        wrap.addEventListener('click', (function(idx) {
+          return function() { openLb(idx); };
+        })(photoIndex));
+
+        wrap.appendChild(img);
+        grid.appendChild(wrap);
+      });
+    }
+
+    // ─────────────────────────────────────────
+    // Init
+    // ─────────────────────────────────────────
+    (function init() {
+      buildGrid();
+      setLang('en');
+
+      fetch('https://ipapi.co/json/')
+        .then(function(r) { return r.json(); })
+        .then(function(d) { if (d.country_code === 'UA') setLang('uk'); })
+        .catch(function() {});
+    })();
+  </script>
+
+</body>
+</html>

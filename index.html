@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Oleh Riabchenko — Photographer &amp; Visual Artist | New Photography</title>
+  <title>Oleh Riabchenko — Photographer &amp; Visual Artist</title>
   <meta name="description" content="Portfolio of Oleh Riabchenko — Ukrainian photographer and visual artist. Long-exposure experimental photography exploring time, light, and digital deconstruction.">
 
   <!-- Canonical -->
@@ -56,9 +56,11 @@
     ]
   }
   </script>
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@200;300;400;600&display=swap" rel="stylesheet">
+
   <style>
     *, *::before, *::after {
       box-sizing: border-box;
@@ -66,9 +68,7 @@
       padding: 0;
     }
 
-    html {
-      scroll-behavior: smooth;
-    }
+    html { scroll-behavior: smooth; }
 
     body {
       font-family: 'Outfit', sans-serif;
@@ -124,14 +124,8 @@
       white-space: nowrap;
     }
 
-    .nav-link:hover {
-      color: #111;
-    }
-
-    .nav-link.active {
-      color: #111;
-      border-bottom-color: #111;
-    }
+    .nav-link:hover { color: #111; }
+    .nav-link.active { color: #111; border-bottom-color: #111; }
 
     .lang-toggle {
       display: flex;
@@ -153,25 +147,14 @@
       line-height: 1;
     }
 
-    .lang-btn.active {
-      color: #111;
-      font-weight: 600;
-    }
+    .lang-btn.active { color: #111; font-weight: 600; }
 
-    .lang-sep {
-      color: #ccc;
-      font-size: 0.7rem;
-      pointer-events: none;
-    }
+    .lang-sep { color: #ccc; font-size: 0.7rem; pointer-events: none; }
 
     /* ── Pages ── */
-    main {
-      padding-top: 64px;
-    }
+    main { padding-top: 64px; }
 
-    .page {
-      display: none;
-    }
+    .page { display: none; }
 
     .page.active {
       display: block;
@@ -206,9 +189,7 @@
       font-weight: 300;
     }
 
-    .about-body p + p {
-      margin-top: 20px;
-    }
+    .about-body p + p { margin-top: 20px; }
 
     .ig-link {
       display: inline-flex;
@@ -226,13 +207,8 @@
       transition: opacity 0.25s;
     }
 
-    .ig-link:hover {
-      opacity: 0.45;
-    }
-
-    .ig-link svg {
-      flex-shrink: 0;
-    }
+    .ig-link:hover { opacity: 0.45; }
+    .ig-link svg { flex-shrink: 0; }
 
     .social-links {
       display: flex;
@@ -242,11 +218,9 @@
       flex-wrap: wrap;
     }
 
-    .social-links .ig-link {
-      margin-top: 0;
-    }
+    .social-links .ig-link { margin-top: 0; }
 
-    /* ── Photography ── */
+    /* ── Photography (New Photography) ── */
     .photo-wrap {
       max-width: 1440px;
       margin: 0 auto;
@@ -270,16 +244,135 @@
       margin-bottom: 72px;
     }
 
-    .photo-intro p + p {
-      margin-top: 18px;
-    }
+    .photo-intro p + p { margin-top: 18px; }
 
-    /* ── Grid ── */
+    /* ── New Photography Grid ── */
     .grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       gap: 6px;
     }
+
+    .grid-item {
+      overflow: hidden;
+      cursor: zoom-in;
+      background: #e8e8e8;
+      aspect-ratio: 4 / 5;
+      position: relative;
+    }
+
+    .grid-item img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.3s;
+    }
+
+    .grid-item:hover img { transform: scale(1.04); }
+
+    /* ── April page ── */
+    .april-wrap {
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: 0 48px 120px;
+    }
+
+    /* Hero: image left, text right */
+    .april-hero {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+      min-height: calc(100vh - 64px);
+      align-items: stretch;
+    }
+
+    .april-hero-img {
+      position: relative;
+      overflow: hidden;
+      cursor: zoom-in;
+    }
+
+    .april-hero-img img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center top;
+      display: block;
+      transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+
+    .april-hero-img:hover img { transform: scale(1.03); }
+
+    .april-hero-text {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 80px 64px;
+    }
+
+    .april-title {
+      font-size: clamp(2.8rem, 5vw, 5rem);
+      font-weight: 200;
+      letter-spacing: 0.04em;
+      line-height: 1.05;
+      color: #111;
+      margin-bottom: 52px;
+    }
+
+    .april-text {
+      font-size: 0.97rem;
+      line-height: 1.88;
+      color: #555;
+      font-weight: 300;
+      max-width: 520px;
+    }
+
+    .april-text p + p { margin-top: 18px; }
+
+    .scroll-hint {
+      margin-top: 56px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: #bbb;
+      font-size: 0.72rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+    }
+
+    .scroll-hint-line {
+      width: 40px;
+      height: 1px;
+      background: #ddd;
+    }
+
+    /* ── April masonry grid ── */
+    .april-gallery { padding-top: 80px; }
+
+    .april-grid {
+      columns: 3;
+      column-gap: 6px;
+    }
+
+    .april-grid-item {
+      break-inside: avoid;
+      margin-bottom: 6px;
+      overflow: hidden;
+      cursor: zoom-in;
+      background: #e8e8e8;
+      display: block;
+      position: relative;
+    }
+
+    .april-grid-item img {
+      width: 100%;
+      height: auto;
+      display: block;
+      transition: transform 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.3s;
+    }
+
+    .april-grid-item:hover img { transform: scale(1.04); }
 
     /* ── Hamburger ── */
     .hamburger {
@@ -307,29 +400,11 @@
     .hamburger.open span:nth-child(2) { opacity: 0; transform: scaleX(0); }
     .hamburger.open span:nth-child(3) { transform: translateY(-6.5px) rotate(-45deg); }
 
-    @media (max-width: 1100px) {
-      .grid { grid-template-columns: repeat(3, 1fr); }
-    }
-
-    @media (max-width: 700px) {
-      .grid { grid-template-columns: repeat(2, 1fr); }
-      nav { padding: 0 20px; }
-      .nav-brand { font-size: 0.75rem; letter-spacing: 0.12em; }
-      .nav-center { display: none; }
-      .lang-toggle { display: none; }
-      .hamburger { display: flex; }
-      .about-wrap, .photo-wrap { padding: 60px 20px 80px; }
-    }
-
-
-
     /* ── Mobile menu ── */
     .mobile-menu {
       display: none;
       position: fixed;
-      top: 64px;
-      left: 0;
-      right: 0;
+      top: 64px; left: 0; right: 0;
       z-index: 190;
       background: rgba(250, 250, 250, 0.97);
       backdrop-filter: blur(12px);
@@ -387,27 +462,6 @@
 
     .m-lang-btn.active { color: #111; font-weight: 600; }
 
-    .grid-item {
-      overflow: hidden;
-      cursor: zoom-in;
-      background: #e8e8e8;
-      aspect-ratio: 4 / 5;
-      position: relative;
-    }
-
-    .grid-item img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-      transition: transform 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-                  opacity 0.3s;
-    }
-
-    .grid-item:hover img {
-      transform: scale(1.04);
-    }
-
     /* ── Lightbox ── */
     #lightbox {
       display: none;
@@ -431,11 +485,12 @@
     }
 
     #lb-img {
-      max-width: 92vw;
+      max-width: 88vw;
       max-height: 92vh;
       object-fit: contain;
       display: block;
-      box-shadow: 0 24px 80px rgba(0,0,0,0.6);
+      box-shadow: 0 24px 80px rgba(0,0,0,0.15);
+      cursor: default;
     }
 
     #lb-close {
@@ -447,7 +502,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      color: rgba(0, 0, 0, 0.45);
+      color: rgba(0,0,0,0.45);
       font-size: 1.8rem;
       cursor: pointer;
       background: none;
@@ -458,8 +513,66 @@
       font-weight: 200;
     }
 
-    #lb-close:hover {
-      color: #000;
+    #lb-close:hover { color: #000; }
+
+    .lb-arrow {
+      position: fixed;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 20px 16px;
+      color: rgba(0,0,0,0.25);
+      font-size: 2.2rem;
+      font-family: 'Outfit', sans-serif;
+      font-weight: 200;
+      line-height: 1;
+      transition: color 0.2s;
+      z-index: 1001;
+      user-select: none;
+    }
+
+    .lb-arrow:hover { color: #111; }
+    #lb-prev { left: 12px; }
+    #lb-next { right: 60px; }
+
+    #lb-counter {
+      position: fixed;
+      bottom: 22px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 0.68rem;
+      letter-spacing: 0.22em;
+      color: #bbb;
+      font-family: 'Outfit', sans-serif;
+      pointer-events: none;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 1100px) {
+      .grid { grid-template-columns: repeat(3, 1fr); }
+      .april-hero { grid-template-columns: 1fr; min-height: auto; }
+      .april-hero-img { height: 65vw; min-height: 400px; }
+      .april-hero-text { padding: 56px 40px; }
+      .april-grid { columns: 2; }
+    }
+
+    @media (max-width: 700px) {
+      .grid { grid-template-columns: repeat(2, 1fr); }
+      nav { padding: 0 20px; }
+      .nav-brand { font-size: 0.75rem; letter-spacing: 0.12em; }
+      .nav-center { display: none; }
+      .lang-toggle { display: none; }
+      .hamburger { display: flex; }
+      .about-wrap { padding: 60px 20px 80px; }
+      .photo-wrap { padding: 60px 20px 80px; }
+      .april-wrap { padding: 0 16px 80px; }
+      .april-hero-text { padding: 40px 20px; }
+      .april-title { font-size: 2.8rem; margin-bottom: 36px; }
+      .april-grid { columns: 1; }
+      #lb-prev { left: 4px; }
+      #lb-next { right: 52px; }
     }
   </style>
 </head>
@@ -471,7 +584,8 @@
 
     <div class="nav-center">
       <span class="nav-link" id="nav-about" onclick="showPage('about')">About</span>
-      <span class="nav-link active" id="nav-photo" onclick="showPage('photo')">New Photography</span>
+      <span class="nav-link" id="nav-photo" onclick="showPage('photo')">New Photography</span>
+      <span class="nav-link" id="nav-april" onclick="showPage('april')">April</span>
     </div>
 
     <div class="lang-toggle">
@@ -489,7 +603,8 @@
   <!-- Mobile menu -->
   <div class="mobile-menu" id="mobile-menu">
     <span class="m-link" id="m-nav-about" onclick="showPage('about')">About</span>
-    <span class="m-link active" id="m-nav-photo" onclick="showPage('photo')">New Photography</span>
+    <span class="m-link" id="m-nav-photo" onclick="showPage('photo')">New Photography</span>
+    <span class="m-link" id="m-nav-april" onclick="showPage('april')">April</span>
     <div class="m-lang">
       <button class="m-lang-btn" id="m-btn-en" onclick="setLang('en')">EN</button>
       <span class="lang-sep">|</span>
@@ -499,7 +614,7 @@
 
   <main>
 
-    <!-- About page -->
+    <!-- ── About ── -->
     <div class="page" id="page-about">
       <div class="about-wrap">
         <h1 class="about-name" id="about-name">Oleh Riabchenko</h1>
@@ -526,7 +641,7 @@
       </div>
     </div>
 
-    <!-- New Photography page -->
+    <!-- ── New Photography ── -->
     <div class="page active" id="page-photo">
       <div class="photo-wrap">
         <h1 class="photo-heading" id="photo-heading">New Photography</h1>
@@ -535,39 +650,69 @@
       </div>
     </div>
 
+    <!-- ── April ── -->
+    <div class="page" id="page-april">
+      <div class="april-wrap">
+
+        <!-- Hero -->
+        <section class="april-hero">
+          <div class="april-hero-img" id="april-hero-img">
+            <img src="April/photos_april_web/0.jpg"
+                 alt="Oleh Riabchenko — April, spring blossoms, main photograph"
+                 loading="eager">
+          </div>
+          <div class="april-hero-text">
+            <h1 class="april-title" id="april-title">April</h1>
+            <div class="april-text" id="april-text"></div>
+            <div class="scroll-hint">
+              <span class="scroll-hint-line"></span>
+              <span id="april-scroll-hint">Scroll to explore</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- Masonry grid -->
+        <section class="april-gallery">
+          <div class="april-grid" id="april-grid"></div>
+        </section>
+
+      </div>
+    </div>
+
   </main>
 
-  <!-- Static content for search engine crawlers (noscript fallback) -->
+  <!-- Static content for SEO / noscript fallback -->
   <noscript>
     <div style="display:none">
       <h1>Oleh Riabchenko — Photographer &amp; Visual Artist</h1>
       <h2>About</h2>
-      <p>I am a photographer and visual artist. I am originally from Kharkiv, but now I live and work in Ivano-Frankivsk. I am currently studying audio-visual arts and photography at the Kharkiv State Academy of Culture. Parallel to my studies, I work as a documentary photographer at the local branch of the National Union of Artists of Ukraine, where I photograph exhibition openings and cultural events.</p>
-      <p>My personal artistic practice is built around the deconstruction of traditional photography. I work primarily with long exposures, camera movement, and deep digital intervention, testing the physical and digital limits of the medium. My background in music production directly influences my visual approach. By rejecting standard optical rules, I focus my work on pure emotions, the passage of time, and the mechanics of image creation itself.</p>
+      <p>I am a photographer and visual artist. I am originally from Kharkiv, but now I live and work in Ivano-Frankivsk.</p>
       <h2>New Photography</h2>
       <p>This series of images is a visual archive of my search for a photographic language: deconstructing traditional photography, seeking new impressions from the shooting process, and processing the resulting material.</p>
-      <p>The project is based on rejecting standard shooting rules, embracing moderate randomness, impressions, and completely immersing myself in my feelings. It prompts reflection on time, the self, power, music, and enjoying the moment.</p>
-      <p>At the end of 2023, while I was in Kharkiv, I stood on the balcony of my apartment and painted with light. Using a long exposure, I captured the headlights of cars, street lamps, and the light from the apartments in the building across the street. I was amazed by the result. It felt as if I had discovered a new kind of photography for myself.</p>
-      <p>In 2025, after moving to Ivano-Frankivsk, I renewed my interest in this new photography. I work primarily handheld with long exposures using ND filters and stopped-down apertures, in aperture priority, manual, and BULB modes.</p>
-      <p>My works are open to interpretation. In them, you can see and hear what you are thinking about, or things you previously did not know.</p>
+      <h2>April</h2>
+      <p>These photographs are the result of my observation of spring tree blossoms. In them, I saw figures performing their final, most expressive dance, as if in despair.</p>
     </div>
   </noscript>
 
   <!-- Lightbox -->
-  <div id="lightbox" onclick="closeLb()">
-    <button id="lb-close" onclick="closeLb()">×</button>
+  <div id="lightbox" onclick="lbBgClick(event)">
+    <button id="lb-close" onclick="closeLb()">&#215;</button>
+    <button class="lb-arrow" id="lb-prev" onclick="lbNav(-1)">&#8249;</button>
     <img id="lb-img" src="" alt="">
+    <button class="lb-arrow" id="lb-next" onclick="lbNav(1)">&#8250;</button>
+    <div id="lb-counter"></div>
   </div>
 
   <script>
     // ─────────────────────────────────────────
     // Content
     // ─────────────────────────────────────────
-    const T = {
+    var T = {
       en: {
-        navAbout: 'About',
-        navPhoto: 'New Photography',
-        aboutName: 'Oleh Riabchenko',
+        navAbout:   'About',
+        navPhoto:   'New Photography',
+        navApril:   'April',
+        aboutName:  'Oleh Riabchenko',
         aboutBody: [
           'I am a photographer and visual artist. I am originally from Kharkiv, but now I live and work in Ivano-Frankivsk. I am currently studying audio-visual arts and photography at the Kharkiv State Academy of Culture. Parallel to my studies, I work as a documentary photographer at the local branch of the National Union of Artists of Ukraine, where I photograph exhibition openings and cultural events.',
           'My personal artistic practice is built around the deconstruction of traditional photography. I work primarily with long exposures, camera movement, and deep digital intervention, testing the physical and digital limits of the medium. My background in music production directly influences my visual approach. By rejecting standard optical rules, I focus my work on pure emotions, the passage of time, and the mechanics of image creation itself.'
@@ -581,12 +726,20 @@
           'The subjects of my shoots were things I found interesting: textures, light, and environments.',
           'During the post-processing stage, I resorted to increasingly bold experiments. Initially, it was moderate image processing, but later it turned into severely squeezing the image. The RGB curves became increasingly unpredictable and extreme. Each channel of the RGB curve was edited individually. The intensity and style of the editing, the color choices, and the shapes reflect my state and emotions at the moment of processing the image. My goal was to distort the original image as much as possible and see something completely different.',
           'My works are open to interpretation. In them, you can see and hear what you are thinking about, or things you previously did not know.'
+        ],
+        aprilTitle: 'April',
+        aprilScrollHint: 'Scroll to explore',
+        aprilText: [
+          'These photographs are the result of my observation of spring tree blossoms. In them, I saw figures performing their final, most expressive dance, as if in despair.',
+          'This series reminds me of portraits of people who have realized the inevitability of their own end. Those who have accepted reality and are living their final minutes — perhaps vividly, or perhaps with fear. We will never know, but we continue to look at them as strong individuals. We admire them and mentally compare ourselves to them.',
+          'The flowers in these frames have long since turned into fruit, which eventually vanished as well. But, every year in April, they will appear again to perform their dance as if for the very last time.'
         ]
       },
       uk: {
-        navAbout: 'Про мене',
-        navPhoto: 'Нова фотографія',
-        aboutName: 'Олег Рябченко',
+        navAbout:   'Про мене',
+        navPhoto:   'Нова фотографія',
+        navApril:   'Квітень',
+        aboutName:  'Олег Рябченко',
         aboutBody: [
           'Я фотограф та візуальний митець. Я родом із Харкова, але зараз живу та працюю в Івано-Франківську. Наразі я вивчаю аудіовізуальне мистецтво та фотографію в Харківській державній академії культури. Паралельно з навчанням я працюю документальним фотографом у місцевому відділенні Національної спілки художників України, де знімаю відкриття виставок та культурні події.',
           'Моя особиста мистецька практика будується навколо деконструкції традиційної фотографії. Я працюю переважно з довгою витримкою, рухом камери та глибоким цифровим втручанням, випробовуючи фізичні та цифрові межі медіуму. Мій досвід у створенні музики безпосередньо впливає на мій візуальний підхід. Відкидаючи стандартні оптичні правила, я фокусую свою роботу на чистих емоціях, плині часу та самій механіці створення зображення.'
@@ -600,14 +753,21 @@
           'Об\'єктами зйомки ставали цікаві для мене речі, текстури, світло, середовища.',
           'На етапі постобробки я вдавався до дедалі сміливіших експериментів. Спочатку це була помірна обробка зображення, потім це перетворилося на дуже грубе вичавлювання зображення. RGB-криві ставали дедалі непередбачуваними та екстремальними. Кожен канал RGB-кривої редагувався окремо. Сила та стиль обробки, кольорові рішення та форми відображають мій стан та емоції у момент обробки зображення. Я мав на меті максимально спотворити оригінальне зображення та побачити щось зовсім інше.',
           'Мої роботи вільні для інтерпретації. У них можна побачити та почути те, про що ви думаєте, або те, про що раніше не знали.'
+        ],
+        aprilTitle: 'Квітень',
+        aprilScrollHint: 'Гортати далі',
+        aprilText: [
+          'Ці фотографії — результат мого спостереження за весняним цвітінням дерев. У ньому я побачив образи, які ніби у відчаї виконують свій останній, найвиразніший танець.',
+          'Ця серія нагадує мені портрети людей, які усвідомили неминучість власного кінця. Тих, хто прийняв реальність і проживає свої останні хвилини — можливо, яскраво, а можливо, зі страхом. Ми цього ніколи не дізнаємось, але продовжуємо дивитися на них як на сильних особистостей. Ми пишаємося ними та подумки порівнюємо себе з ними.',
+          'Квіти з цих кадрів давно стали плодами, які згодом також зникли. Проте щороку у квітні вони з\'являтимуться знову, щоб виконати свій танець так, ніби роблять це востаннє.'
         ]
       }
     };
 
     // ─────────────────────────────────────────
-    // Photos list
+    // Photos lists
     // ─────────────────────────────────────────
-    const PHOTOS = [
+    var PHOTOS = [
       '0.1.jpg','0.10.jpg','0.2.jpg','0.3.jpg','0.4.jpg','0.5.jpg','0.6.jpg',
       '1.jpg','108.jpg','109.jpg','110.jpg','111.jpg','112.jpg','113.jpg','114.jpg',
       '117.jpg','119.jpg','12.jpg','120.jpg','122.jpg','124.jpg','125.jpg','127.jpg',
@@ -624,32 +784,47 @@
       '95.jpg','96.jpg','98.jpg'
     ];
 
+    var APRIL_PHOTOS = [
+      '0.jpg','1.jpg','2.jpg','7.jpg','11.jpg','12.jpg',
+      '13.jpg','15.jpg','16.jpg','17.jpg','18.jpg','19.jpg','20.jpg'
+    ];
+
     // ─────────────────────────────────────────
     // State
     // ─────────────────────────────────────────
-    let lang = 'en';
+    var lang = 'en';
+    var lbPhotos = [];
+    var lbBasePath = '';
+    var lbIndex = 0;
 
     // ─────────────────────────────────────────
     // Language
     // ─────────────────────────────────────────
     function setLang(l) {
       lang = l;
-      const c = T[l];
+      var c = T[l];
 
       document.documentElement.lang = l === 'uk' ? 'uk' : 'en';
 
-      document.getElementById('nav-about').textContent = c.navAbout;
-      document.getElementById('nav-photo').textContent = c.navPhoto;
+      document.getElementById('nav-about').textContent  = c.navAbout;
+      document.getElementById('nav-photo').textContent  = c.navPhoto;
+      document.getElementById('nav-april').textContent  = c.navApril;
       document.getElementById('m-nav-about').textContent = c.navAbout;
       document.getElementById('m-nav-photo').textContent = c.navPhoto;
-      document.getElementById('about-name').textContent = c.aboutName;
+      document.getElementById('m-nav-april').textContent = c.navApril;
 
+      document.getElementById('about-name').textContent = c.aboutName;
       document.getElementById('about-body').innerHTML =
-        c.aboutBody.map(p => `<p>${p}</p>`).join('');
+        c.aboutBody.map(function(p) { return '<p>' + p + '</p>'; }).join('');
 
       document.getElementById('photo-heading').textContent = c.photoHeading;
       document.getElementById('photo-intro').innerHTML =
-        c.photoIntro.map(p => `<p>${p}</p>`).join('');
+        c.photoIntro.map(function(p) { return '<p>' + p + '</p>'; }).join('');
+
+      document.getElementById('april-title').textContent = c.aprilTitle;
+      document.getElementById('april-scroll-hint').textContent = c.aprilScrollHint;
+      document.getElementById('april-text').innerHTML =
+        c.aprilText.map(function(p) { return '<p>' + p + '</p>'; }).join('');
 
       document.getElementById('btn-en').classList.toggle('active', l === 'en');
       document.getElementById('btn-uk').classList.toggle('active', l === 'uk');
@@ -663,13 +838,13 @@
     // Page switching
     // ─────────────────────────────────────────
     function showPage(id) {
-      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-      document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-      document.querySelectorAll('.m-link').forEach(l => l.classList.remove('active'));
+      document.querySelectorAll('.page').forEach(function(p) { p.classList.remove('active'); });
+      document.querySelectorAll('.nav-link').forEach(function(l) { l.classList.remove('active'); });
+      document.querySelectorAll('.m-link').forEach(function(l) { l.classList.remove('active'); });
 
       document.getElementById('page-' + id).classList.add('active');
-      document.getElementById('nav-' + (id === 'photo' ? 'photo' : 'about')).classList.add('active');
-      document.getElementById('m-nav-' + (id === 'photo' ? 'photo' : 'about')).classList.add('active');
+      document.getElementById('nav-' + id).classList.add('active');
+      document.getElementById('m-nav-' + id).classList.add('active');
 
       window.scrollTo({ top: 0, behavior: 'instant' });
       closeMenu();
@@ -679,9 +854,9 @@
     // Mobile menu
     // ─────────────────────────────────────────
     function toggleMenu() {
-      const menu = document.getElementById('mobile-menu');
-      const btn  = document.getElementById('hamburger');
-      const isOpen = menu.classList.contains('open');
+      var menu = document.getElementById('mobile-menu');
+      var btn  = document.getElementById('hamburger');
+      var isOpen = menu.classList.contains('open');
       menu.classList.toggle('open', !isOpen);
       btn.classList.toggle('open', !isOpen);
     }
@@ -694,10 +869,26 @@
     // ─────────────────────────────────────────
     // Lightbox
     // ─────────────────────────────────────────
-    function openLb(src) {
-      document.getElementById('lb-img').src = src;
+    function openLb(index, photos, basePath) {
+      lbPhotos   = photos;
+      lbBasePath = basePath;
+      lbIndex    = index;
+      updateLb();
       document.getElementById('lightbox').classList.add('open');
       document.body.style.overflow = 'hidden';
+    }
+
+    function updateLb() {
+      var img = document.getElementById('lb-img');
+      img.src = lbBasePath + lbPhotos[lbIndex];
+      img.alt = 'Oleh Riabchenko — photograph ' + (lbIndex + 1);
+      document.getElementById('lb-counter').textContent =
+        (lbIndex + 1) + ' / ' + lbPhotos.length;
+    }
+
+    function lbNav(dir) {
+      lbIndex = (lbIndex + dir + lbPhotos.length) % lbPhotos.length;
+      updateLb();
     }
 
     function closeLb() {
@@ -705,54 +896,89 @@
       document.body.style.overflow = '';
     }
 
-    document.addEventListener('keydown', e => {
-      if (e.key === 'Escape') closeLb();
+    function lbBgClick(e) {
+      if (e.target === document.getElementById('lightbox')) closeLb();
+    }
+
+    document.addEventListener('keydown', function(e) {
+      if (!document.getElementById('lightbox').classList.contains('open')) return;
+      if (e.key === 'Escape')      closeLb();
+      if (e.key === 'ArrowLeft')   lbNav(-1);
+      if (e.key === 'ArrowRight')  lbNav(1);
     });
 
-    // Click on photo itself also closes lightbox
-    document.getElementById('lb-img').addEventListener('click', () => closeLb());
-
     // ─────────────────────────────────────────
-    // ─────────────────────────────────────────
-    // Natural numeric sort for filenames like 0.1.jpg, 0.10.jpg, 1.jpg, 108.jpg
-    // Splits name by ".", compares each segment as integer:
-    //   0.1 → [0,1], 0.10 → [0,10], 1 → [1], 108 → [108]
-    // Result: 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.10, 1, 2, 3 … 108 …
+    // Natural numeric sort (for New Photography filenames)
     // ─────────────────────────────────────────
     function photoKey(f) {
       return f.replace(/\.jpg$/i, '').split('.').map(Number);
     }
+
     function comparePhotos(a, b) {
-      const ak = photoKey(a), bk = photoKey(b);
-      for (let i = 0; i < Math.max(ak.length, bk.length); i++) {
-        const d = (ak[i] ?? -1) - (bk[i] ?? -1);
+      var ak = photoKey(a), bk = photoKey(b);
+      for (var i = 0; i < Math.max(ak.length, bk.length); i++) {
+        var d = (ak[i] !== undefined ? ak[i] : -1) - (bk[i] !== undefined ? bk[i] : -1);
         if (d !== 0) return d;
       }
       return 0;
     }
+
     PHOTOS.sort(comparePhotos);
 
     // ─────────────────────────────────────────
-    // Build photo grid
+    // Build New Photography grid
     // ─────────────────────────────────────────
     function buildGrid() {
-      const grid = document.getElementById('photo-grid');
-      PHOTOS.forEach(file => {
-        const wrap = document.createElement('div');
+      var grid = document.getElementById('photo-grid');
+      PHOTOS.forEach(function(file, i) {
+        var wrap = document.createElement('div');
         wrap.className = 'grid-item';
 
-        const img = document.createElement('img');
-        img.src = 'photos/' + file;
-        // Generate descriptive alt text from filename for SEO
-        const baseName = file.replace(/\.[^.]+$/, '');
-        img.alt = `Oleh Riabchenko — New Photography, photo ${baseName} — long exposure experimental art`;
+        var img = document.createElement('img');
+        img.src = 'photos_web/' + file;
+        var baseName = file.replace(/\.[^.]+$/, '');
+        img.alt = 'Oleh Riabchenko — New Photography, photo ' + baseName + ' — long exposure experimental art';
         img.loading = 'lazy';
         img.decoding = 'async';
+        img.onerror = function() { wrap.style.display = 'none'; };
 
-        // Hide broken images
-        img.onerror = () => { wrap.style.display = 'none'; };
+        wrap.addEventListener('click', (function(idx) {
+          return function() { openLb(idx, PHOTOS, 'photos_web/'); };
+        })(i));
 
-        wrap.addEventListener('click', () => openLb('photos/' + file));
+        wrap.appendChild(img);
+        grid.appendChild(wrap);
+      });
+    }
+
+    // ─────────────────────────────────────────
+    // Build April grid (hero = index 0, grid = 1-12)
+    // ─────────────────────────────────────────
+    function buildAprilGrid() {
+      // Hero click
+      document.getElementById('april-hero-img').addEventListener('click', function() {
+        openLb(0, APRIL_PHOTOS, 'April/photos_april_web/');
+      });
+
+      // Grid photos (skip index 0)
+      var grid = document.getElementById('april-grid');
+      APRIL_PHOTOS.slice(1).forEach(function(file, i) {
+        var photoIndex = i + 1;
+
+        var wrap = document.createElement('div');
+        wrap.className = 'april-grid-item';
+
+        var img = document.createElement('img');
+        img.src = 'April/photos_april_web/' + file;
+        img.alt = 'Oleh Riabchenko — April series, photograph ' + (photoIndex + 1);
+        img.loading = 'lazy';
+        img.decoding = 'async';
+        img.onerror = function() { wrap.style.display = 'none'; };
+
+        wrap.addEventListener('click', (function(idx) {
+          return function() { openLb(idx, APRIL_PHOTOS, 'April/photos_april_web/'); };
+        })(photoIndex));
+
         wrap.appendChild(img);
         grid.appendChild(wrap);
       });
@@ -763,13 +989,14 @@
     // ─────────────────────────────────────────
     (function init() {
       buildGrid();
-      setLang('en'); // default
+      buildAprilGrid();
+      setLang('en');
 
       // Auto-detect country
       fetch('https://ipapi.co/json/')
-        .then(r => r.json())
-        .then(d => { if (d.country_code === 'UA') setLang('uk'); })
-        .catch(() => {}); // stay on EN
+        .then(function(r) { return r.json(); })
+        .then(function(d) { if (d.country_code === 'UA') setLang('uk'); })
+        .catch(function() {});
     })();
   </script>
 
